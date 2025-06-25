@@ -47,7 +47,7 @@ import type {
 /**
  * Package version
  */
-export const VERSION = "1.0.1";
+export const VERSION = "1.0.2";
 
 /**
  * Supported models and providers
