@@ -42,7 +42,8 @@
         "prepublishOnly": "npm run validate && npm run build",
         "release:patch": "npm version patch && npm publish && git push --follow-tags",
         "release:minor": "npm version minor && npm publish && git push --follow-tags",
-        "release:major": "npm version major && npm publish && git push --follow-tags"
+        "release:major": "npm version major && npm publish && git push --follow-tags",
+        "version": "node -e \"const pkg=require('./package.json'); const fs=require('fs'); const indexPath='src/index.ts'; const content=fs.readFileSync(indexPath, 'utf8'); fs.writeFileSync(indexPath, content.replace(/VERSION = \\\"[^\\\"]+\\\"/g, 'VERSION = \\\"' + pkg.version + '\\\"'));\" && git add src/index.ts"
     },
     "keywords": [
         "mongoose",

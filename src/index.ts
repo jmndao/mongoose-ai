@@ -33,6 +33,9 @@ export type {
   LogLevel,
 } from "./types";
 
+// Export utility functions
+export { hasAIMethods, hasAIDocumentMethods, isSearchResult } from "./types";
+
 // Import types for internal use
 import type {
   AIConfig,
