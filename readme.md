@@ -21,14 +21,14 @@ Transform your MongoDB documents with AI-powered summarization and semantic sear
 ### Installation
 
 ```bash
-npm install mongoose-ai
+npm install @jmndao/mongoose-ai
 ```
 
 ### Basic Setup
 
 ```typescript
 import mongoose from "mongoose";
-import { aiPlugin } from "mongoose-ai";
+import { aiPlugin } from "@jmndao/mongoose-ai";
 
 // Define your schema
 const articleSchema = new mongoose.Schema({
@@ -132,7 +132,7 @@ schema.plugin(aiPlugin, {
 ### Helper Functions
 
 ```typescript
-import { createAIConfig, validateApiKey, estimateCost } from "mongoose-ai";
+import { createAIConfig, validateApiKey, estimateCost } from "@jmndao/mongoose-ai";
 
 // Create configuration with defaults
 const config = createAIConfig({
@@ -184,7 +184,7 @@ const similar = await Model.findSimilar(referenceDocument, {
 ### Multiple AI Fields
 
 ```typescript
-import { createAIConfig } from "mongoose-ai";
+import { createAIConfig } from "@jmndao/mongoose-ai";
 
 const blogSchema = new mongoose.Schema({
   title: String,
@@ -252,7 +252,7 @@ blogSchema.plugin(aiPlugin, {
 ### Performance Monitoring
 
 ```typescript
-import { estimateTokenCount, estimateCost } from "mongoose-ai";
+import { estimateTokenCount, estimateCost } from "@jmndao/mongoose-ai";
 
 // Monitor usage and costs
 const documents = await BlogPost.find();
@@ -298,7 +298,7 @@ console.log(
 Full TypeScript support with proper type definitions:
 
 ```typescript
-import { AIDocument, AIModelType } from "mongoose-ai";
+import { AIDocument, AIModelType } from "@jmndao/mongoose-ai";
 
 interface IBlogPost {
   title: string;
@@ -328,7 +328,7 @@ MONGODB_URI=mongodb://localhost:27017/your_database
 Verify your setup:
 
 ```typescript
-import { checkEnvironment } from "mongoose-ai";
+import { checkEnvironment } from "@jmndao/mongoose-ai";
 
 const envCheck = checkEnvironment();
 if (!envCheck.isValid) {
