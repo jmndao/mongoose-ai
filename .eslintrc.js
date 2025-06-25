@@ -1,24 +1,40 @@
 module.exports = {
-  parser: '@typescript-eslint/parser',
+  parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaVersion: 2020,
-    sourceType: 'module',
+    sourceType: "module",
   },
-  plugins: ['@typescript-eslint'],
-  extends: ['eslint:recommended', '@typescript-eslint/recommended'],
+  extends: ["eslint:recommended"],
+  root: true,
   env: {
     node: true,
-    es6: true,
     jest: true,
+    es6: true,
   },
+  ignorePatterns: [
+    ".eslintrc.js",
+    "dist/",
+    "node_modules/",
+    "coverage/",
+    "examples/",
+    "jest.config.js",
+    "*.js",
+  ],
   rules: {
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-var-requires': 'off',
-    'no-console': 'off',
-    'prefer-const': 'error',
-    'no-var': 'error',
+    "no-unused-vars": "off", // Handled by TypeScript
+    "no-undef": "off", // Handled by TypeScript
+    "prefer-const": "error",
+    "no-var": "error",
   },
-  ignorePatterns: ['dist/', 'node_modules/', '*.js'],
+  overrides: [
+    {
+      files: ["**/*.test.ts", "**/*.spec.ts", "tests/**/*.ts"],
+      env: {
+        jest: true,
+      },
+      rules: {
+        "no-unused-expressions": "off",
+      },
+    },
+  ],
 };

@@ -186,7 +186,7 @@ export class OpenAIProvider {
 
     try {
       return JSON.stringify(clean, null, 2)
-        .replace(/[{}",\[\]]/g, " ")
+        .replace(/[{}",[\]]/g, " ")
         .replace(/\s+/g, " ")
         .trim();
     } catch (error) {
