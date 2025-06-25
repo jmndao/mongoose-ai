@@ -1,22 +1,22 @@
 # mongoose-ai
 
-🤖 **AI-powered Mongoose plugin for intelligent document processing**
+AI-powered Mongoose plugin for intelligent document processing
 
 [![npm version](https://img.shields.io/npm/v/mongoose-ai.svg)](https://www.npmjs.com/package/mongoose-ai)
 
 Transform your MongoDB documents with AI-powered summarization and semantic search capabilities. Built for production use with TypeScript support.
 
-## ✨ Features
+## Features
 
-- 🤖 **Auto-Summarization** - Generate intelligent summaries on document save
-- 🔍 **Semantic Search** - Natural language search with vector embeddings
-- ⚡ **High Performance** - Optimized for production with built-in caching
-- 🛡️ **Type Safe** - Full TypeScript support with comprehensive types
-- 🔧 **Configurable** - Advanced options for retries, field filtering, and more
-- 💰 **Cost Tracking** - Monitor token usage and estimate API costs
-- 🎯 **Production Ready** - Robust error handling and logging
+- Auto-Summarization - Generate intelligent summaries on document save
+- Semantic Search - Natural language search with vector embeddings
+- High Performance - Optimized for production with built-in caching
+- Type Safe - Full TypeScript support with comprehensive types
+- Configurable - Advanced options for retries, field filtering, and more
+- Cost Tracking - Monitor token usage and estimate API costs
+- Production Ready - Robust error handling and logging
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -54,8 +54,7 @@ const Article = mongoose.model("Article", articleSchema);
 // Create article - summary generated automatically
 const article = new Article({
   title: "Getting Started with AI",
-  content:
-    "Artificial intelligence is transforming how we build applications...",
+  content: "Artificial intelligence is transforming how we build applications...",
   author: "Jane Smith",
 });
 
@@ -95,7 +94,7 @@ const results = await Product.semanticSearch("wireless headphones", {
 console.log(results); // Products ranked by semantic similarity
 ```
 
-## 📖 API Reference
+## API Reference
 
 ### Plugin Configuration
 
@@ -162,14 +161,14 @@ await document.regenerateAI();
 const similarity = document1.calculateSimilarity(document2);
 ```
 
-### Static Methods (Embedding Models)
+### Static Methods
 
 ```typescript
 // Semantic search
 const results = await Model.semanticSearch("search query", {
   limit: 10,
   threshold: 0.7,
-  filter: { category: "technology" }, // Additional filters
+  filter: { category: "technology" },
 });
 
 // Find similar documents
@@ -179,7 +178,7 @@ const similar = await Model.findSimilar(referenceDocument, {
 });
 ```
 
-## 🔧 Advanced Usage
+## Advanced Usage
 
 ### Multiple AI Fields
 
@@ -217,7 +216,7 @@ blogEmbeddingSchema.plugin(aiPlugin, {
 const BlogPost = mongoose.model("BlogPost", blogEmbeddingSchema);
 ```
 
-### Advanced Configuration
+### Custom Configuration
 
 ```typescript
 blogSchema.plugin(aiPlugin, {
@@ -225,21 +224,15 @@ blogSchema.plugin(aiPlugin, {
     apiKey: process.env.OPENAI_API_KEY,
     model: "summary",
     field: "summary",
-
-    // Custom processing
     prompt: "Create a professional summary highlighting key insights:",
     includeFields: ["title", "content", "category"],
     excludeFields: ["author", "createdAt"],
-
-    // Performance tuning
     advanced: {
       maxRetries: 3,
       timeout: 45000,
       skipOnUpdate: true,
       logLevel: "info",
     },
-
-    // Model configuration
     modelConfig: {
       chatModel: "gpt-4",
       maxTokens: 150,
@@ -249,74 +242,23 @@ blogSchema.plugin(aiPlugin, {
 });
 ```
 
-### Performance Monitoring
-
-```typescript
-import { estimateTokenCount, estimateCost } from "mongoose-ai";
-
-// Monitor usage and costs
-const documents = await BlogPost.find();
-const totalTokens = documents.reduce(
-  (sum, doc) => sum + (doc.summary?.tokenCount || 0),
-  0
-);
-
-console.log(`Total tokens used: ${totalTokens}`);
-console.log(
-  `Estimated cost: $${estimateCost(totalTokens, "gpt-3.5-turbo").toFixed(4)}`
-);
-```
-
-## 🔍 Generated Field Structures
-
-### Summary Fields
-
-```typescript
-{
-  summary: string;
-  generatedAt: Date;
-  model: string;
-  tokenCount?: number;
-  processingTime?: number;
-}
-```
-
-### Embedding Fields
-
-```typescript
-{
-  embedding: number[];
-  generatedAt: Date;
-  model: string;
-  dimensions: number;
-  processingTime?: number;
-}
-```
-
-## 🎯 TypeScript Support
+## TypeScript Support
 
 Full TypeScript support with proper type definitions:
 
 ```typescript
-import { AIDocument, AIModelType } from "mongoose-ai";
+import { WithAI, hasAIMethods } from "mongoose-ai";
 
-interface IBlogPost {
-  title: string;
-  content: string;
-  summary?: SummaryResult;
+// Create typed version for AI methods
+export type DeviceWithAI = WithAI<typeof Device>;
+
+// Type-safe checking
+if (hasAIMethods(Device)) {
+  const results = await Device.semanticSearch("query");
 }
-
-const BlogPost = mongoose.model<AIDocument<IBlogPost>>(
-  "BlogPost",
-  blogSchema
-) as AIModelType<IBlogPost>;
-
-// Full IntelliSense support
-const results = await BlogPost.semanticSearch("query"); // ✅ Typed
-const summary = post.getAIContent(); // ✅ Typed
 ```
 
-## 🛠️ Environment Setup
+## Environment Setup
 
 Create a `.env` file:
 
@@ -337,17 +279,16 @@ if (!envCheck.isValid) {
 }
 ```
 
-## 🔒 Error Handling
+## Error Handling
 
 The plugin includes robust error handling:
 
-- **Graceful failures** - Documents save even if AI processing fails
-- **Automatic retries** - Configurable retry logic for API failures
-- **Detailed logging** - Comprehensive logging with configurable levels
-- **Cost protection** - Built-in timeouts and rate limiting
+- Graceful failures - Documents save even if AI processing fails
+- Automatic retries - Configurable retry logic for API failures
+- Detailed logging - Comprehensive logging with configurable levels
+- Cost protection - Built-in timeouts and rate limiting
 
 ```typescript
-// Configure error handling
 blogSchema.plugin(aiPlugin, {
   ai: {
     // ... other config
@@ -361,7 +302,7 @@ blogSchema.plugin(aiPlugin, {
 });
 ```
 
-## 📊 Semantic Search Examples
+## Examples
 
 ### Basic Search
 
@@ -372,7 +313,7 @@ results.forEach((result) => {
 });
 ```
 
-### Advanced Search with Filters
+### Search with Filters
 
 ```typescript
 const results = await Product.semanticSearch("professional computer", {
@@ -395,50 +336,35 @@ const similar = await Product.findSimilar(laptop, {
 });
 ```
 
-## 🏷️ Requirements
+## Requirements
 
-- **Node.js** 16+
-- **Mongoose** 7.x or 8.x
-- **OpenAI API Key**
-- **TypeScript** 5+ (for TypeScript projects)
+- Node.js 16+
+- Mongoose 7.x or 8.x
+- OpenAI API Key
+- TypeScript 5+ (for TypeScript projects)
 
-## 📚 Examples
+## Performance
 
-Check out the [examples directory](./examples) for complete usage examples:
+mongoose-ai scales efficiently from prototype to enterprise:
 
-- Basic summarization setup
-- Semantic search implementation
-- Advanced configuration patterns
-- Performance monitoring
-- Error handling strategies
+- Works perfectly up to 10K documents
+- Requires optimization beyond 100K documents
+- Enterprise solutions available for millions of documents
 
-## 📈 Scaling
+## Contributing
 
-mongoose-ai scales efficiently from prototype to enterprise. See our [Database Scaling Guide](docs/scaling-guide.md) for:
+Contributions are welcome! Please read our contributing guidelines and submit pull requests to our repository.
 
-- Performance characteristics at different scales
-- Optimization strategies and migration paths  
-- Cost projections and infrastructure recommendations
-- Monitoring and alerting best practices
-
-**TL;DR**: Works perfectly up to 10K documents, requires optimization beyond 100K documents, enterprise solutions available for millions of documents.
-
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) and submit pull requests to our repository.
-
-## 📄 License
+## License
 
 MIT © [Jonathan Moussa NDAO](https://github.com/jmndao)
 
-## 🔗 Links
+## Links
 
-- [Documentation](https://github.com/jmndao/mongoose-ai#readme)
 - [NPM Package](https://www.npmjs.com/package/mongoose-ai)
 - [Issues](https://github.com/jmndao/mongoose-ai/issues)
 - [Examples](https://github.com/jmndao/mongoose-ai/tree/main/examples)
 
 ---
 
-**Made with ❤️ for the MongoDB community**
+Made with ❤️ for the MongoDB community
