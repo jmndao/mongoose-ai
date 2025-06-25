@@ -26,6 +26,10 @@ export type {
   AIError,
   AIDocument,
   AIModelType,
+  AIDocumentMethods,
+  AIModelStatics,
+  WithAI,
+  WithAIDocument,
   LogLevel,
 } from "./types";
 
@@ -40,7 +44,7 @@ import type {
 /**
  * Package version
  */
-export const VERSION = "1.0.0";
+export const VERSION = "1.0.1";
 
 /**
  * Supported models and providers
@@ -124,6 +128,7 @@ export function estimateCost(tokenCount: number, model: string): number {
     "gpt-3.5-turbo": 0.0015, // $0.0015 per 1K tokens
     "gpt-4": 0.03, // $0.03 per 1K tokens
     "gpt-4o": 0.005, // $0.005 per 1K tokens
+    "gpt-4o-mini": 0.00015, // $0.00015 per 1K tokens
     "text-embedding-3-small": 0.00002, // $0.00002 per 1K tokens
     "text-embedding-3-large": 0.00013, // $0.00013 per 1K tokens
   };
