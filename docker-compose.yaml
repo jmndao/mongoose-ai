@@ -1,0 +1,28 @@
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: mongoose-ai-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: mongoose_ai
+    volumes:
+      - mongo_data:/data/db
+
+  # mongoose-ai runner
+  mongoose-ai:
+    image: node:18-alpine
+    container_name: mongoose-ai-runner
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/mongoose_ai
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      - mongodb
+    command: sh -c "npm install && npx tsx examples/benchmark-demo.ts"
+
+volumes:
+  mongo_data:

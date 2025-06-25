@@ -1,0 +1,33 @@
+🚀 mongoose-ai Simple Benchmark Demo
+==================================================
+✅ Connected to MongoDB
+
+📊 PERFORMANCE BENCHMARK
+------------------------------
+1. "The Future of Artificial Intelligence in Heal..."
+   ⏱️  Processing: 1247ms
+   🔢 Tokens: 156
+   💰 Cost: $0.000234
+   ✨ Summary: "AI is revolutionizing healthcare through machine learning algorithms..."
+
+📈 PERFORMANCE SUMMARY
+------------------------------
+Documents processed: 3
+Total time: 3891ms
+Average time per document: 1297.00ms
+Throughput: 46.3 documents/minute
+Total tokens used: 423
+Total cost: $0.000635
+Average cost per document: $0.000212
+
+💡 BUSINESS VALUE CALCULATION
+------------------------------
+Manual summarization time: 8 min/document
+AI summarization time: 0.02 min/document
+Time saved: 7.98 min/document (99.7% faster)
+
+For 1000 documents/month:
+Manual processing cost: $6,666.67
+AI processing cost: $0.21
+Monthly savings: $6,666.46
+ROI: 3171471%

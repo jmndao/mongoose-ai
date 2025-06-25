@@ -1,0 +1,40 @@
+# Source files (only ship built dist)
+src/
+tests/
+examples/
+benchmarks/
+docs/
+
+# Development files
+.github/
+.vscode/
+.idea/
+*.config.js
+*.config.ts
+tsconfig*.json
+.eslintrc*
+.prettierrc*
+
+# Development dependencies
+coverage/
+.nyc_output
+.cache/
+
+# Documentation (keep README.md)
+CONTRIBUTING.md
+docs/
+
+# Environment and local files
+.env*
+docker-compose.yml
+Dockerfile*
+
+# Logs and cache
+logs/
+*.log
+.npm
+.cache
+
+# OS files
+.DS_Store
+Thumbs.db
