@@ -1,8 +1,9 @@
 # Docker Setup for mongoose-ai
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Setup Environment
+
 ```bash
 # Copy the environment template
 cp .env.example .env
@@ -11,74 +12,215 @@ cp .env.example .env
 OPENAI_API_KEY=sk-your-actual-key-here
 ```
 
-### 2. Run Examples
+### 2. Build and Run
+
 ```bash
-# Run benchmark demo
-docker-compose run --rm mongoose-ai npm run example:benchmark
+# Build the Docker image (first time or when dependencies change)
+docker compose build
 
-# Run basic usage example  
-docker-compose run --rm mongoose-ai npm run example:basic
-
-# Run advanced usage example
-docker-compose run --rm mongoose-ai npm run example:advanced
+# Run examples
+docker compose run --rm mongoose-ai npm run example:basic
+docker compose run --rm mongoose-ai npm run example:benchmark
+docker compose run --rm mongoose-ai npm run example:advanced
+docker compose run --rm mongoose-ai npm run example:scaling
 ```
 
-### 3. Start Everything
+### 3. Development Workflow
+
 ```bash
-# Start MongoDB and run benchmark
-docker-compose up --build
+# Start MongoDB for local development
+docker compose up mongodb -d
 
 # Stop everything
-docker-compose down
+docker compose down
 ```
 
-## 📊 Available Commands
+## Available Commands
+
+### Docker Commands
 
 ```bash
-# Quick benchmark run
-npm run docker:benchmark
+# Build the development environment
+docker compose build
 
-# Basic example
-npm run docker:basic  
+# Run any npm script
+docker compose run --rm mongoose-ai npm run <script-name>
 
-# Advanced example
-npm run docker:advanced
+# Run tests
+docker compose run --rm mongoose-ai npm test
 
-# Start all services
-npm run docker:up
+# Run custom TypeScript files
+docker compose run --rm mongoose-ai npx tsx examples/your-file.ts
 
-# Stop all services  
-npm run docker:down
+# Start MongoDB only
+docker compose up mongodb -d
+
+# Clean up everything
+docker compose down -v
 ```
 
-## 🔧 What's Included
+### NPM Scripts (Updated)
 
-- **MongoDB 7.0** - Database running on port 27017
-- **Node.js 18** - Runtime environment with all dependencies
-- **Auto-setup** - Automatically installs npm packages
-- **Examples** - All examples ready to run
+```bash
+# Development
+npm run build                 # Build the project
+npm run dev                   # Watch mode development
+npm run test                  # Run tests
+npm run lint                  # Check code quality
 
-## 📁 Files Structure
+# Examples (run locally)
+npm run example:basic         # Basic usage example
+npm run example:advanced      # Advanced usage patterns
+npm run example:benchmark     # Performance benchmarking
+npm run example:scaling       # Database scaling tests
+
+# Docker shortcuts (if you add them to package.json)
+npm run docker:build          # Build Docker image
+npm run docker:benchmark      # Run benchmark in Docker
+npm run docker:up             # Start all services
+npm run docker:down           # Stop all services
+```
+
+## What's Included
+
+- **MongoDB 7.0** - Database with health checks on port 27017
+- **Node.js 18 Alpine** - Lightweight runtime environment
+- **All Dependencies** - Pre-installed npm packages including dev dependencies
+- **Built Project** - TypeScript compiled and ready to run
+- **Examples** - All examples ready to execute
+- **Health Checks** - MongoDB health monitoring
+
+## Files Structure
 
 ```
 mongoose-ai/
-├── docker-compose.yml     ← Main Docker configuration
-├── .env                   ← Your API keys (create this)
+├── Dockerfile              ← Build configuration
+├── docker-compose.yaml     ← Services configuration
+├── .dockerignore           ← Docker build exclusions
+├── .env                    ← Your API keys (create this)
 ├── examples/
-│   ├── benchmark-demo.ts  ← Benchmark demonstration
-│   ├── basic-usage.ts     ← Basic example
-│   └── advanced-usage.ts  ← Advanced example
-└── package.json           ← Updated with Docker scripts
+│   ├── basic-usage.ts      ← Getting started
+│   ├── usage.ts            ← Advanced patterns
+│   ├── benchmark-demo.ts   ← Performance testing
+│   └── scaling-test.ts     ← Database scaling
+└── package.json            ← Dependencies and scripts
 ```
 
-## ⚡ One-Line Setup
+## One-Line Setup
 
 ```bash
 # 1. Set your API key
 echo "OPENAI_API_KEY=sk-your-key-here" > .env
 
-# 2. Run benchmark
-docker-compose run --rm mongoose-ai npm run example:benchmark
+# 2. Build and run
+docker compose build && docker compose run --rm mongoose-ai npm run example:basic
 ```
 
-That's it! 🎉
+## Development Tips
+
+### First Time Setup
+
+```bash
+# Complete setup
+git clone <repository>
+cd mongoose-ai
+echo "OPENAI_API_KEY=sk-your-key-here" > .env
+docker compose build
+```
+
+### Daily Development
+
+```bash
+# Start MongoDB for local development
+docker compose up mongodb -d
+
+# Run your code locally (faster)
+npm install
+npm run example:basic
+
+# Or run in Docker (consistent environment)
+docker compose run --rm mongoose-ai npm run example:basic
+```
+
+### Updating Dependencies
+
+```bash
+# Rebuild when package.json changes
+docker compose build --no-cache
+
+# Force rebuild everything
+docker compose down -v
+docker compose build --no-cache
+```
+
+### Performance Testing
+
+```bash
+# Run all performance tests
+docker compose run --rm mongoose-ai npm run example:benchmark
+docker compose run --rm mongoose-ai npm run example:scaling
+
+# Run with different database sizes
+docker compose run --rm mongoose-ai npx tsx examples/scaling-test.ts
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**MongoDB Connection Failed**
+
+```bash
+# Wait for MongoDB to be ready
+docker compose up mongodb -d
+sleep 10
+docker compose run --rm mongoose-ai npm run example:basic
+```
+
+**Image Build Failed**
+
+```bash
+# Clean build
+docker compose down -v
+docker system prune -f
+docker compose build --no-cache
+```
+
+**Permission Issues**
+
+```bash
+# Fix ownership (Linux/macOS)
+sudo chown -R $USER:$USER .
+```
+
+**Environment Variables**
+
+```bash
+# Check if .env is loaded
+docker compose run --rm mongoose-ai env | grep OPENAI
+```
+
+### Logs and Debugging
+
+```bash
+# View MongoDB logs
+docker compose logs mongodb
+
+# Run with debug output
+docker compose run --rm mongoose-ai npm run example:basic --verbose
+
+# Enter container for debugging
+docker compose run --rm mongoose-ai sh
+```
+
+## Production Notes
+
+This Docker setup is optimized for **development and testing**. For production:
+
+- Use multi-stage builds to reduce image size
+- Run as non-root user
+- Use production MongoDB setup
+- Implement proper secrets management
+- Add monitoring and logging
+
+That's it! The setup is now robust and easy to use.

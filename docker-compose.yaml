@@ -9,20 +9,22 @@ services:
       MONGO_INITDB_DATABASE: mongoose_ai
     volumes:
       - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
 
-  # mongoose-ai runner
+  # mongoose-ai development environment
   mongoose-ai:
-    image: node:18-alpine
+    build: .
     container_name: mongoose-ai-runner
-    working_dir: /app
-    volumes:
-      - .:/app
     environment:
       MONGODB_URI: mongodb://mongodb:27017/mongoose_ai
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     depends_on:
-      - mongodb
-    command: sh -c "npm install && npx tsx examples/benchmark-demo.ts"
+      mongodb:
+        condition: service_healthy
 
 volumes:
   mongo_data:

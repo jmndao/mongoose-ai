@@ -4,7 +4,7 @@
  */
 
 import mongoose from "mongoose";
-import { aiPlugin, createAIConfig } from "mongoose-ai";
+import { aiPlugin, createAIConfig } from "../src/index.js";
 
 // Test schema
 const testSchema = new mongoose.Schema({
@@ -25,7 +25,7 @@ const TestDoc = mongoose.model("TestDoc", testSchema);
 
 class ScalingTest {
   async generateTestData(count: number) {
-    console.log(`\n🔄 Generating ${count} test documents...`);
+    console.log(`\nGenerating ${count} test documents...`);
 
     const categories = ["Tech", "Science", "Business", "Health", "Education"];
     const docs = [];
@@ -58,11 +58,11 @@ class ScalingTest {
       );
     }
 
-    console.log(`✅ Generated ${count} test documents`);
+    console.log(`Generated ${count} test documents`);
   }
 
   async processWithAI(count: number) {
-    console.log(`\n🤖 Processing ${count} documents with AI...`);
+    console.log(`\nProcessing ${count} documents with AI...`);
 
     const startTime = Date.now();
     let processed = 0;
@@ -89,7 +89,7 @@ class ScalingTest {
     }
 
     const totalTime = Date.now() - startTime;
-    console.log(`✅ Processed ${processed} documents in ${totalTime}ms`);
+    console.log(`Processed ${processed} documents in ${totalTime}ms`);
     console.log(
       `   Average: ${(totalTime / processed).toFixed(2)}ms per document`
     );
@@ -101,14 +101,14 @@ class ScalingTest {
   }
 
   async testSearchPerformance() {
-    console.log(`\n🔍 Testing search performance...`);
+    console.log(`\nTesting search performance...`);
 
     const dbSize = await TestDoc.countDocuments();
     const embeddingCount = await TestDoc.countDocuments({
       searchEmbedding: { $exists: true },
     });
 
-    console.log(`📊 Database stats:`);
+    console.log(`Database stats:`);
     console.log(`   Total documents: ${dbSize.toLocaleString()}`);
     console.log(`   With embeddings: ${embeddingCount.toLocaleString()}`);
 
@@ -136,20 +136,22 @@ class ScalingTest {
         console.log(`   Results: ${results.length}`);
 
         if (searchTime > 5000) {
-          console.log(`   ⚠️  Search taking too long (${searchTime}ms)`);
+          console.log(`   Warning: Search taking too long (${searchTime}ms)`);
         } else if (searchTime > 1000) {
-          console.log(`   ⚠️  Search performance degrading (${searchTime}ms)`);
+          console.log(
+            `   Warning: Search performance degrading (${searchTime}ms)`
+          );
         } else {
-          console.log(`   ✅ Good performance (${searchTime}ms)`);
+          console.log(`   Good performance (${searchTime}ms)`);
         }
       } catch (error) {
-        console.log(`   ❌ Search failed: ${error}`);
+        console.log(`   Search failed: ${error}`);
       }
     }
   }
 
   async testMemoryUsage() {
-    console.log(`\n💾 Memory usage analysis...`);
+    console.log(`\nMemory usage analysis...`);
 
     const beforeMemory = process.memoryUsage();
 
@@ -158,7 +160,7 @@ class ScalingTest {
 
     const afterMemory = process.memoryUsage();
 
-    console.log(`📊 Memory usage:`);
+    console.log(`Memory usage:`);
     console.log(
       `   Before: ${(beforeMemory.heapUsed / 1024 / 1024).toFixed(2)} MB`
     );
@@ -182,13 +184,13 @@ class ScalingTest {
   }
 
   async runScalingTest() {
-    console.log("🧪 DATABASE SCALING TEST");
+    console.log("DATABASE SCALING TEST");
     console.log("=".repeat(50));
 
     const testSizes = [100, 500, 1000, 2000];
 
     for (const size of testSizes) {
-      console.log(`\n🎯 Testing with ${size} documents`);
+      console.log(`\nTesting with ${size} documents`);
       console.log("-".repeat(30));
 
       // Clear existing data
@@ -206,31 +208,31 @@ class ScalingTest {
       // Test memory usage
       await this.testMemoryUsage();
 
-      console.log(`\n✅ Completed test with ${size} documents`);
+      console.log(`\nCompleted test with ${size} documents`);
     }
 
     this.generateRecommendations();
   }
 
   generateRecommendations() {
-    console.log("\n💡 SCALING RECOMMENDATIONS");
+    console.log("\nSCALING RECOMMENDATIONS");
     console.log("=".repeat(50));
     console.log("Based on the test results:");
     console.log("");
-    console.log("📊 Performance Thresholds:");
+    console.log("Performance Thresholds:");
     console.log("   • < 1,000 docs: mongoose-ai works great as-is");
     console.log("   • 1,000-10,000 docs: Consider search result caching");
     console.log("   • 10,000-100,000 docs: Implement pagination and indexes");
     console.log("   • 100,000+ docs: Migrate to vector database solution");
     console.log("");
-    console.log("🔧 Optimization Strategies:");
+    console.log("Optimization Strategies:");
     console.log("   • Add database indexes for frequent search patterns");
     console.log("   • Implement result caching for common queries");
     console.log("   • Use background processing for AI generation");
     console.log("   • Consider MongoDB Atlas Vector Search");
     console.log("   • Implement read replicas for search operations");
     console.log("");
-    console.log("🚀 Next Steps:");
+    console.log("Next Steps:");
     console.log("   • Monitor search performance in production");
     console.log("   • Set up alerting for slow queries (>1s)");
     console.log("   • Plan migration strategy before hitting limits");
@@ -240,7 +242,7 @@ class ScalingTest {
 
 async function runScalingTests() {
   if (!process.env.OPENAI_API_KEY) {
-    console.error("❌ OPENAI_API_KEY required");
+    console.error("OPENAI_API_KEY required");
     process.exit(1);
   }
 
@@ -248,15 +250,15 @@ async function runScalingTests() {
     await mongoose.connect(
       process.env.MONGODB_URI || "mongodb://localhost:27017/mongoose-ai-scaling"
     );
-    console.log("✅ Connected to MongoDB");
+    console.log("Connected to MongoDB");
 
     const test = new ScalingTest();
     await test.runScalingTest();
   } catch (error) {
-    console.error("❌ Scaling test failed:", error);
+    console.error("Scaling test failed:", error);
   } finally {
     await mongoose.connection.close();
-    console.log("\n👋 Scaling test complete!");
+    console.log("\nScaling test complete!");
   }
 }
 

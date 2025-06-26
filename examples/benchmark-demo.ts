@@ -4,7 +4,7 @@
  */
 
 import mongoose from "mongoose";
-import { aiPlugin, createAIConfig, estimateCost } from "mongoose-ai";
+import { aiPlugin, createAIConfig, estimateCost } from "../src/index.js";
 
 // Test article schema
 const articleSchema = new mongoose.Schema({
@@ -47,16 +47,16 @@ const testArticles = [
 ];
 
 async function runSimpleBenchmark() {
-  console.log("🚀 mongoose-ai Simple Benchmark Demo");
+  console.log("mongoose-ai Simple Benchmark Demo");
   console.log("=".repeat(50));
 
   try {
     await mongoose.connect(
       process.env.MONGODB_URI || "mongodb://localhost:27017/mongoose-ai-demo"
     );
-    console.log("✅ Connected to MongoDB\n");
+    console.log("Connected to MongoDB\n");
 
-    console.log("📊 PERFORMANCE BENCHMARK");
+    console.log("PERFORMANCE BENCHMARK");
     console.log("-".repeat(30));
 
     const startTime = Date.now();
@@ -81,11 +81,11 @@ async function runSimpleBenchmark() {
       });
 
       console.log(`${i + 1}. "${article.title.substring(0, 40)}..."`);
-      console.log(`   ⏱️  Processing: ${articleTime}ms`);
-      console.log(`   🔢 Tokens: ${tokens}`);
-      console.log(`   💰 Cost: $${cost.toFixed(6)}`);
+      console.log(`   Processing: ${articleTime}ms`);
+      console.log(`   Tokens: ${tokens}`);
+      console.log(`   Cost: $${cost.toFixed(6)}`);
       console.log(
-        `   ✨ Summary: "${article.aiSummary?.summary?.substring(0, 80)}..."`
+        `   Summary: "${article.aiSummary?.summary?.substring(0, 80)}..."`
       );
       console.log("");
     }
@@ -95,7 +95,7 @@ async function runSimpleBenchmark() {
     const totalTokens = results.reduce((sum, r) => sum + r.tokens, 0);
     const totalCost = results.reduce((sum, r) => sum + r.cost, 0);
 
-    console.log("📈 PERFORMANCE SUMMARY");
+    console.log("PERFORMANCE SUMMARY");
     console.log("-".repeat(30));
     console.log(`Documents processed: ${testArticles.length}`);
     console.log(`Total time: ${totalTime}ms`);
@@ -109,7 +109,7 @@ async function runSimpleBenchmark() {
       )}`
     );
 
-    console.log("\n💡 BUSINESS VALUE CALCULATION");
+    console.log("\nBUSINESS VALUE CALCULATION");
     console.log("-".repeat(30));
 
     // Manual vs AI comparison
@@ -143,37 +143,35 @@ async function runSimpleBenchmark() {
     console.log(`Monthly savings: $${savings.toFixed(2)}`);
     console.log(`ROI: ${roi.toFixed(0)}%`);
 
-    console.log("\n🎯 KEY TAKEAWAYS");
+    console.log("\nKEY TAKEAWAYS");
     console.log("-".repeat(30));
     console.log(
-      `✅ ${((timeSaved / manualTimePerDoc) * 100).toFixed(
+      `${((timeSaved / manualTimePerDoc) * 100).toFixed(
         0
       )}% faster than manual processing`
     );
     console.log(
-      `✅ $${(totalCost / testArticles.length).toFixed(4)} per document (vs $${(
+      `$${(totalCost / testArticles.length).toFixed(4)} per document (vs $${(
         (manualTimePerDoc / 60) *
         hourlyRate
       ).toFixed(2)} manual)`
     );
     console.log(
-      `✅ ${(60000 / avgTime).toFixed(
-        0
-      )} documents/minute processing capability`
+      `${(60000 / avgTime).toFixed(0)} documents/minute processing capability`
     );
-    console.log(`✅ ${roi.toFixed(0)}% ROI on typical workloads`);
-    console.log(`✅ Zero infrastructure setup required`);
+    console.log(`${roi.toFixed(0)}% ROI on typical workloads`);
+    console.log(`Zero infrastructure setup required`);
   } catch (error) {
-    console.error("❌ Benchmark failed:", error);
+    console.error("Benchmark failed:", error);
   } finally {
     await mongoose.connection.close();
-    console.log("\n👋 Benchmark complete!");
+    console.log("\nBenchmark complete!");
   }
 }
 
 // Value proposition calculator
 function calculateValueProposition() {
-  console.log("\n💼 VALUE PROPOSITION CALCULATOR");
+  console.log("\nVALUE PROPOSITION CALCULATOR");
   console.log("=".repeat(50));
 
   const scenarios = [
@@ -186,7 +184,7 @@ function calculateValueProposition() {
     const aiCost = scenario.docs * 0.002; // $0.002 per doc
     const roi = (scenario.savings / aiCost) * 100;
 
-    console.log(`\n📊 ${scenario.name} (${scenario.docs} docs/month):`);
+    console.log(`\n${scenario.name} (${scenario.docs} docs/month):`);
     console.log(`   AI Cost: $${aiCost.toFixed(2)}/month`);
     console.log(`   Labor Savings: $${scenario.savings.toFixed(2)}/month`);
     console.log(`   ROI: ${roi.toFixed(0)}%`);
@@ -195,7 +193,7 @@ function calculateValueProposition() {
 
 // Comparison with alternatives
 function showCompetitiveAnalysis() {
-  console.log("\n🏆 COMPETITIVE ANALYSIS");
+  console.log("\nCOMPETITIVE ANALYSIS");
   console.log("=".repeat(50));
 
   const comparison = [

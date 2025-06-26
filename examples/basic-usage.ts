@@ -4,7 +4,7 @@
  */
 
 import mongoose from "mongoose";
-import { aiPlugin } from "mongoose-ai";
+import { aiPlugin } from "../src/index.js";
 
 // Set up environment
 require("dotenv").config();
@@ -70,8 +70,12 @@ async function main() {
     process.env.MONGODB_URI || "mongodb://localhost:27017/test"
   );
 
+  // Clear existing data for clean demo
+  await Article.deleteMany({});
+  await Product.deleteMany({});
+
   // Example 1: Create article with auto-summary
-  console.log("📝 Creating article...");
+  console.log("Creating article...");
 
   const article = new Article({
     title: "Introduction to Machine Learning",
@@ -82,13 +86,13 @@ async function main() {
 
   await article.save(); // Summary is automatically generated!
 
-  console.log("✨ Article created with AI summary:");
+  console.log("Article created with AI summary:");
   console.log(`Title: ${article.title}`);
   console.log(`Summary: ${article.aiSummary.summary}`);
   console.log(`Generated at: ${article.aiSummary.generatedAt}`);
 
   // Example 2: Create products and search
-  console.log("\n🛍️ Creating products...");
+  console.log("\nCreating products...");
 
   const products = [
     {
@@ -116,11 +120,14 @@ async function main() {
   for (const productData of products) {
     const product = new Product(productData);
     await product.save();
-    console.log(`✅ Created: ${product.name}`);
+    console.log(`Created: ${product.name}`);
   }
 
   // Search using natural language
-  console.log("\n🔍 Searching products...");
+  console.log("\nSearching products...");
+
+  // Wait a moment for embeddings to be fully processed
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   const searchQueries = [
     "phone with good camera",
@@ -129,19 +136,36 @@ async function main() {
   ];
 
   for (const query of searchQueries) {
-    const results = await Product.semanticSearch(query, { limit: 2 });
+    try {
+      const results = await Product.semanticSearch(query, { 
+        limit: 2,
+        threshold: 0.3  // Lower threshold to see more results
+      });
 
-    console.log(`\nSearch: "${query}"`);
-    results.forEach((result, i) => {
-      console.log(
-        `  ${i + 1}. ${result.document.name} - $${result.document.price}`
-      );
-      console.log(`     Similarity: ${(result.similarity * 100).toFixed(1)}%`);
-    });
+      console.log(`\nSearch: "${query}"`);
+      if (results.length === 0) {
+        console.log("  No results found - embeddings may still be processing");
+        
+        // Check if products have embeddings
+        const productsWithEmbeddings = await Product.countDocuments({
+          searchEmbedding: { $exists: true }
+        });
+        console.log(`  Products with embeddings: ${productsWithEmbeddings}/3`);
+      } else {
+        results.forEach((result, i) => {
+          console.log(
+            `  ${i + 1}. ${result.document.name} - ${result.document.price}`
+          );
+          console.log(`     Similarity: ${(result.similarity * 100).toFixed(1)}%`);
+        });
+      }
+    } catch (error) {
+      console.log(`  Search failed: ${error.message}`);
+    }
   }
 
   // Example 3: Manual operations
-  console.log("\n🔧 Manual operations...");
+  console.log("\nManual operations...");
 
   // Get AI content
   const firstArticle = await Article.findOne();
@@ -163,19 +187,19 @@ async function main() {
 
   // Close connection
   await mongoose.connection.close();
-  console.log("\n✅ Done!");
+  console.log("\nDone!");
 }
 
 // Handle errors gracefully
 main().catch((error) => {
-  console.error("❌ Error:", error.message);
+  console.error("Error:", error.message);
   process.exit(1);
 });
 
 /**
  * Quick Start Checklist:
  *
- * 1. Install: npm install mongoose-ai
+ * 1. Install: npm install @jmndao/mongoose-ai
  * 2. Set environment variable: OPENAI_API_KEY=your_key_here
  * 3. Add plugin to your schema
  * 4. Use model: 'summary' for text summaries
