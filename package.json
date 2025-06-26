@@ -1,6 +1,6 @@
 {
     "name": "@jmndao/mongoose-ai",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "🤖 AI-powered Mongoose plugin for intelligent document processing with auto-summarization and semantic search",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
