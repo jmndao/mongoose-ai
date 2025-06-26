@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.3] - 2025-06-26
 
 ### Added
+- feat: enhance development workflow and example reliability
+
+## [1.0.3] - 2025-06-26
+
+### Added
+- feat: enhance development workflow and example reliability
+
+## [1.0.3] - 2025-06-26
+
+### Added
 - WithAI and WithAIDocument helper types for better TypeScript support
 - Type guards (hasAIMethods, hasAIDocumentMethods) for runtime checking
 - Additional utility functions exported from types module
