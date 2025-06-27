@@ -87,7 +87,7 @@
     "bugs": {
         "url": "https://github.com/jmndao/mongoose-ai/issues"
     },
-    "homepage": "https://github.com/jmndao/mongoose-ai#readme",
+    "homepage": "https://mongoose-ai.vercel.app",
     "peerDependencies": {
         "mongoose": ">=7.0.0"
     },
