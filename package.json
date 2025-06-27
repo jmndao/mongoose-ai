@@ -45,9 +45,9 @@
         "docker:down": "docker compose down",
         "prepare": "npm run build",
         "prepublishOnly": "npm run validate && npm run build",
-        "release:patch": "npm run changelog && npm version patch && npm publish && git push --follow-tags",
-        "release:minor": "npm run changelog && npm version minor && npm publish && git push --follow-tags",
-        "release:major": "npm run changelog && npm version major && npm publish && git push --follow-tags",
+        "release:patch": "npm run changelog && git add CHANGELOG.md && git commit -m \"docs: update CHANGELOG\" && npm version patch && npm publish && git push --follow-tags",
+        "release:minor": "npm run changelog && git add CHANGELOG.md && git commit -m \"docs: update CHANGELOG\" && npm version minor && npm publish && git push --follow-tags",
+        "release:major": "npm run changelog && git add CHANGELOG.md && git commit -m \"docs: update CHANGELOG\" && npm version major && npm publish && git push --follow-tags",
         "version": "node -e \"const pkg=require('./package.json'); const fs=require('fs'); const indexPath='src/index.ts'; const content=fs.readFileSync(indexPath, 'utf8'); fs.writeFileSync(indexPath, content.replace(/VERSION = \\\"[^\\\"]+\\\"/g, 'VERSION = \\\"' + pkg.version + '\\\"'));\" && git add src/index.ts"
     },
     "keywords": [

@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.2] - 2025-06-27
 
 ### Changed
+- docs: consolidate version updates in CHANGELOG for v1.3.3
+- docs: update version in CHANGELOG and README for v1.3.3
+- docs: update version in CHANGELOG to v1.3.3
+- docs: update version in release notes to v1.3.3
+
+## [1.3.2] - 2025-06-27
+
+### Changed
 - docs: update version in CHANGELOG and README for v1.3.3
 - docs: update version in CHANGELOG to v1.3.3
 - docs: update version in release notes to v1.3.3
