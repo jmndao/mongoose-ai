@@ -8,11 +8,13 @@
 
 Automatically generate summaries, classify content, and search documents using AI. Works with OpenAI and Anthropic.
 
-## What's New in v1.3.3
+## Latest Features
 
 - **Function Calling** - AI automatically fills fields (sentiment, priority, tags)
-- **Multi-Provider** - Use OpenAI or Anthropic Claude
-- **100% Compatible** - All v1.0.x code still works
+- **Multi-Provider** - Use OpenAI or Anthropic Claude  
+- **100% Compatible** - All previous versions still work
+
+[![npm version](https://img.shields.io/npm/v/@jmndao/mongoose-ai.svg)](https://www.npmjs.com/package/@jmndao/mongoose-ai)
 
 ## Features
 
