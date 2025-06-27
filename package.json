@@ -1,7 +1,7 @@
 {
     "name": "@jmndao/mongoose-ai",
-    "version": "1.0.4",
-    "description": "AI-powered Mongoose plugin for intelligent document processing with auto-summarization and semantic search",
+    "version": "1.1.0",
+    "description": "AI-powered Mongoose plugin for intelligent document processing with auto-summarization, semantic search, and function calling",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
     "types": "dist/index.d.ts",
@@ -34,7 +34,9 @@
         "validate": "npm run typecheck && npm run typecheck:tests && npm run lint && npm run test",
         "example:basic": "tsx examples/basic-usage.ts",
         "example:advanced": "tsx examples/advanced-usage.ts",
+        "example:functions": "tsx examples/function-calling-usage.ts",
         "example:benchmark": "tsx examples/benchmark-demo.ts",
+        "example:function-benchmark": "tsx examples/function-calling-benchmark.ts",
         "example:scaling": "tsx examples/scaling-test.ts",
         "changelog": "node scripts/changelog.js",
         "docker:build": "docker compose build",
@@ -52,6 +54,8 @@
         "mongoose",
         "ai",
         "openai",
+        "anthropic",
+        "function-calling",
         "semantic-search",
         "embedding",
         "summarization",
@@ -67,7 +71,8 @@
         "natural-language-processing",
         "automation",
         "gpt",
-        "chatgpt"
+        "chatgpt",
+        "claude"
     ],
     "author": {
         "name": "Jonathan Moussa NDAO",

@@ -1,9 +1,10 @@
 /**
- * Main mongoose-ai plugin
+ * Main mongoose-ai plugin with universal function calling
  */
 
 import { Schema, Document } from "mongoose";
-import { OpenAIProvider } from "./providers/openai";
+import { createProvider, validateProviderModel } from "./providers/factory";
+import { AIProviderInterface } from "./providers/base";
 import {
   AIPluginOptions,
   AIConfig,
@@ -42,6 +43,10 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
     throw new Error("Valid model (summary|embedding) required");
   }
 
+  if (!config.provider || !["openai", "anthropic"].includes(config.provider)) {
+    throw new Error("Valid provider (openai|anthropic) required");
+  }
+
   if (
     !config.field ||
     typeof config.field !== "string" ||
@@ -58,15 +63,19 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
     throw new Error("API key required");
   }
 
+  // Validate provider supports model
+  validateProviderModel(config.provider, config.model);
+
   // Check if field already exists in schema
   if (schema.paths[config.field] || schema.virtuals[config.field]) {
     throw new Error(`Field "${config.field}" already exists in schema`);
   }
 
   // Initialize provider
-  let provider: OpenAIProvider;
+  let provider: AIProviderInterface;
   try {
-    provider = new OpenAIProvider(
+    provider = createProvider(
+      config.provider,
       config.credentials,
       config.modelConfig,
       config.advanced
@@ -89,6 +98,15 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
           model: { type: String },
           tokenCount: { type: Number },
           processingTime: { type: Number },
+          functionResults: [
+            {
+              name: { type: String },
+              success: { type: Boolean },
+              result: { type: Schema.Types.Mixed },
+              error: { type: String },
+              executedAt: { type: Date },
+            },
+          ],
         },
         default: undefined,
       },
@@ -102,6 +120,15 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
           model: { type: String },
           dimensions: { type: Number },
           processingTime: { type: Number },
+          functionResults: [
+            {
+              name: { type: String },
+              success: { type: Boolean },
+              result: { type: Schema.Types.Mixed },
+              error: { type: String },
+              executedAt: { type: Date },
+            },
+          ],
         },
         default: undefined,
       },
@@ -289,18 +316,16 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
 async function processAI(
   document: Document,
   config: AIConfig,
-  provider: OpenAIProvider
+  provider: AIProviderInterface
 ): Promise<void> {
   const docData = document.toObject();
 
-  // Remove system fields
   delete docData._id;
   delete docData.__v;
   delete docData.createdAt;
   delete docData.updatedAt;
   delete docData[config.field];
 
-  // Apply field filters
   let processedData = { ...docData };
 
   if (config.includeFields && config.includeFields.length > 0) {
@@ -319,7 +344,16 @@ async function processAI(
   }
 
   if (config.model === "summary") {
-    const result = await provider.summarize(processedData, config.prompt);
+    const functionsWithDocument = config.functions?.map((func) => ({
+      ...func,
+      handler: (args: any, _: Document) => func.handler(args, document),
+    }));
+
+    const result = await provider.summarize(
+      processedData,
+      config.prompt,
+      functionsWithDocument
+    );
     (document as any)[config.field] = result;
   } else if (config.model === "embedding") {
     const text = JSON.stringify(processedData);

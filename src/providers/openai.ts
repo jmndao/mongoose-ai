@@ -1,28 +1,30 @@
 /**
- * OpenAI provider for text processing and embeddings
+ * OpenAI provider for text processing and embeddings with function calling
  */
 
 import OpenAI from "openai";
+import { Document } from "mongoose";
+import { BaseProvider } from "./base";
 import {
   AICredentials,
   SummaryResult,
   EmbeddingResult,
   AIAdvancedOptions,
   OpenAIModelConfig,
-  LogLevel,
+  AIFunction,
+  FunctionResult,
 } from "../types";
 
-export class OpenAIProvider {
+export class OpenAIProvider extends BaseProvider {
   private readonly client: OpenAI;
   private readonly config: Required<OpenAIModelConfig>;
-  private readonly advanced: Required<AIAdvancedOptions>;
 
   constructor(
     credentials: AICredentials,
     modelConfig: OpenAIModelConfig = {},
     advancedOptions: AIAdvancedOptions = {}
   ) {
-    this.validateCredentials(credentials);
+    super(credentials, advancedOptions);
 
     // Set default configurations
     this.config = {
@@ -30,15 +32,6 @@ export class OpenAIProvider {
       embeddingModel: modelConfig.embeddingModel || "text-embedding-3-small",
       maxTokens: modelConfig.maxTokens || 200,
       temperature: modelConfig.temperature || 0.3,
-    };
-
-    this.advanced = {
-      maxRetries: advancedOptions.maxRetries ?? 2,
-      timeout: advancedOptions.timeout ?? 30000,
-      skipOnUpdate: advancedOptions.skipOnUpdate ?? false,
-      forceRegenerate: advancedOptions.forceRegenerate ?? false,
-      logLevel: advancedOptions.logLevel || "warn",
-      continueOnError: advancedOptions.continueOnError ?? true,
     };
 
     try {
@@ -58,11 +51,12 @@ export class OpenAIProvider {
   }
 
   /**
-   * Generate summary for document
+   * Generate summary for document with optional function calling
    */
   async summarize(
     document: Record<string, any>,
-    customPrompt?: string
+    customPrompt?: string,
+    functions?: AIFunction[]
   ): Promise<SummaryResult> {
     const startTime = Date.now();
 
@@ -76,9 +70,10 @@ export class OpenAIProvider {
       const prompt =
         customPrompt || "Summarize this content in 2-3 clear sentences:";
 
-      this.log("debug", `Generating summary for ${text.length} characters`);
+      // Prepare function tools for OpenAI
+      const tools = this.prepareFunctionTools(functions);
 
-      const response = await this.client.chat.completions.create({
+      const requestParams: any = {
         model: this.config.chatModel,
         messages: [
           { role: "system", content: prompt },
@@ -86,9 +81,51 @@ export class OpenAIProvider {
         ],
         max_tokens: this.config.maxTokens,
         temperature: this.config.temperature,
-      });
+      };
 
-      const summary = response.choices[0]?.message?.content?.trim();
+      // Only add tools if functions are enabled and available
+      if (tools.length > 0 && this.advanced.enableFunctions) {
+        requestParams.tools = tools;
+        requestParams.tool_choice = "auto";
+      }
+
+      const response = await this.client.chat.completions.create(requestParams);
+
+      const choice = response.choices[0];
+      if (!choice) {
+        throw new Error("No response choice received from OpenAI");
+      }
+
+      let summary = choice.message?.content?.trim() || "";
+      let functionResults: FunctionResult[] = [];
+
+      // Handle tool calls if present
+      const toolCalls = choice.message?.tool_calls;
+      if (
+        toolCalls &&
+        toolCalls.length > 0 &&
+        functions &&
+        this.advanced.enableFunctions
+      ) {
+        // Execute functions and collect results
+        functionResults = await this.executeFunctions(
+          functions,
+          toolCalls.map((call) => ({
+            name: call.function.name,
+            arguments: JSON.parse(call.function.arguments || "{}"),
+          })),
+          document as Document
+        );
+      }
+
+      // If no summary but tool calls exist, create a default summary
+      if (!summary && functionResults.length > 0) {
+        summary = "Analysis completed with automated classifications applied.";
+        this.log(
+          "info",
+          "No summary content provided, using default summary due to tool calls"
+        );
+      }
 
       if (!summary) {
         throw new Error("Failed to generate summary - no content returned");
@@ -103,6 +140,7 @@ export class OpenAIProvider {
         model: this.config.chatModel,
         tokenCount: response.usage?.total_tokens,
         processingTime,
+        ...(functionResults.length > 0 && { functionResults }),
       };
     } catch (error) {
       const processingTime = Date.now() - startTime;
@@ -129,10 +167,6 @@ export class OpenAIProvider {
       }
 
       const processedText = this.truncateText(text, 8000);
-      this.log(
-        "debug",
-        `Generating embedding for ${processedText.length} characters`
-      );
 
       const response = await this.client.embeddings.create({
         model: this.config.embeddingModel,
@@ -171,52 +205,48 @@ export class OpenAIProvider {
   }
 
   /**
-   * Convert document to clean text
+   * Prepare function tools for OpenAI API
    */
-  private prepareText(document: Record<string, any>): string {
-    if (!document || typeof document !== "object") {
-      return "";
+  private prepareFunctionTools(functions?: AIFunction[]): any[] {
+    if (!functions || !this.advanced.enableFunctions) {
+      return [];
     }
 
-    const clean = { ...document };
+    return functions.map((func) => {
+      // Clean parameters: remove 'required' property from individual parameters
+      const cleanParameters: Record<string, any> = {};
+      const requiredFields: string[] = [];
 
-    // Remove common system fields
-    const systemFields = ["_id", "__v", "createdAt", "updatedAt", "id"];
-    systemFields.forEach((field) => delete clean[field]);
+      Object.entries(func.parameters).forEach(([key, param]) => {
+        // Extract required status before cleaning
+        if (param.required === true) {
+          requiredFields.push(key);
+        }
 
-    try {
-      return JSON.stringify(clean, null, 2)
-        .replace(/[{}",[\]]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-    } catch (error) {
-      this.log("warn", "Failed to stringify document, using fallback");
-      return String(document).trim();
-    }
-  }
+        // Remove the 'required' property from the parameter definition
+        const { required, ...cleanParam } = param;
+        cleanParameters[key] = cleanParam;
+      });
 
-  /**
-   * Truncate text to specified length
-   */
-  private truncateText(text: string, maxLength: number): string {
-    if (!text || typeof text !== "string") {
-      return "";
-    }
-
-    if (text.length <= maxLength) return text;
-
-    const truncated = text.substring(0, maxLength);
-    const lastSpace = truncated.lastIndexOf(" ");
-
-    return lastSpace > maxLength * 0.8
-      ? truncated.substring(0, lastSpace) + "..."
-      : truncated + "...";
+      return {
+        type: "function" as const,
+        function: {
+          name: func.name,
+          description: func.description,
+          parameters: {
+            type: "object" as const,
+            properties: cleanParameters,
+            required: requiredFields,
+          },
+        },
+      };
+    });
   }
 
   /**
    * Validate credentials
    */
-  private validateCredentials(credentials: AICredentials): void {
+  protected validateCredentials(credentials: AICredentials): void {
     if (!credentials || typeof credentials !== "object") {
       throw new Error("Credentials object is required");
     }
@@ -235,43 +265,12 @@ export class OpenAIProvider {
   }
 
   /**
-   * Extract error message
-   */
-  private getErrorMessage(error: any): string {
-    if (typeof error === "string") return error;
-    if (error?.message) return error.message;
-    if (error?.error?.message) return error.error.message;
-    if (error?.response?.data?.error?.message)
-      return error.response.data.error.message;
-    return "Unknown error occurred";
-  }
-
-  /**
-   * Log messages based on level
-   */
-  private log(level: LogLevel, message: string, error?: any): void {
-    const levels = { debug: 0, info: 1, warn: 2, error: 3 };
-    const currentLevel = levels[this.advanced.logLevel];
-
-    if (levels[level] >= currentLevel) {
-      const timestamp = new Date().toISOString();
-      const prefix = `[${timestamp}] [mongoose-ai:openai] [${level.toUpperCase()}]`;
-
-      if (error && level === "error") {
-        console[level](`${prefix} ${message}`, error);
-      } else {
-        console[level](`${prefix} ${message}`);
-      }
-    }
-  }
-
-  /**
    * Get provider information
    */
   getProviderInfo() {
     return {
       name: "OpenAI",
-      version: "1.0.0",
+      version: "1.1.0",
       models: this.config,
       advanced: this.advanced,
     };

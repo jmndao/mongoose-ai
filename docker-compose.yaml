@@ -22,6 +22,7 @@ services:
     environment:
       MONGODB_URI: mongodb://mongodb:27017/mongoose_ai
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
     depends_on:
       mongodb:
         condition: service_healthy

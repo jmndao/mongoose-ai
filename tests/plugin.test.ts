@@ -31,27 +31,34 @@ describe("mongoose-ai plugin", () => {
   describe("validateApiKey", () => {
     it("should validate correct OpenAI API key format", () => {
       expect(
-        validateApiKey("sk-1234567890abcdef1234567890abcdef12345678")
+        validateApiKey("sk-1234567890abcdef1234567890abcdef12345678", "openai")
       ).toBe(true);
       expect(
-        validateApiKey("sk-proj-1234567890abcdef1234567890abcdef12345678")
+        validateApiKey("sk-proj-1234567890abcdef1234567890abcdef12345678", "openai")
+      ).toBe(true);
+    });
+
+    it("should validate correct Anthropic API key format", () => {
+      expect(
+        validateApiKey("sk-ant-1234567890abcdef1234567890abcdef12345678", "anthropic")
+      ).toBe(true);
+      expect(
+        validateApiKey("1234567890abcdef1234567890abcdef12345678", "anthropic")
       ).toBe(true);
     });
 
     it("should reject invalid API key formats", () => {
-      expect(validateApiKey("")).toBe(false);
-      expect(validateApiKey("invalid-key")).toBe(false);
-      expect(validateApiKey("sk-short")).toBe(false);
-      expect(
-        validateApiKey("pk-1234567890abcdef1234567890abcdef12345678")
-      ).toBe(false);
-      expect(validateApiKey("sk-")).toBe(false);
+      expect(validateApiKey("", "openai")).toBe(false);
+      expect(validateApiKey("invalid-key", "openai")).toBe(false);
+      expect(validateApiKey("sk-short", "openai")).toBe(false);
+      expect(validateApiKey("pk-1234567890abcdef1234567890abcdef12345678", "openai")).toBe(false);
+      expect(validateApiKey("sk-", "openai")).toBe(false);
     });
 
     it("should handle non-string inputs", () => {
-      expect(validateApiKey(null as any)).toBe(false);
-      expect(validateApiKey(undefined as any)).toBe(false);
-      expect(validateApiKey(123 as any)).toBe(false);
+      expect(validateApiKey(null as any, "openai")).toBe(false);
+      expect(validateApiKey(undefined as any, "openai")).toBe(false);
+      expect(validateApiKey(123 as any, "openai")).toBe(false);
     });
   });
 
@@ -136,6 +143,19 @@ describe("mongoose-ai plugin", () => {
             },
           });
         }).toThrow("Valid model (summary|embedding) required");
+      });
+
+      it("should require valid provider type", () => {
+        expect(() => {
+          schema.plugin(aiPlugin, {
+            ai: {
+              model: "summary",
+              provider: "invalid" as any,
+              field: "aiField",
+              credentials: { apiKey: "sk-test123456789012345678901234567890" },
+            },
+          });
+        }).toThrow("Valid provider (openai|anthropic) required");
       });
 
       it("should require field name", () => {
