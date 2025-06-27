@@ -71,7 +71,7 @@ export {
 /**
  * Package version
  */
-export const VERSION = "1.3.3";
+export const VERSION = "1.3.4";
 
 /**
  * Supported models and providers
