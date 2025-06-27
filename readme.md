@@ -8,7 +8,7 @@
 
 Automatically generate summaries, classify content, and search documents using AI. Works with OpenAI and Anthropic.
 
-## What's New in v1.3.0
+## What's New in v1.3.3
 
 - **Function Calling** - AI automatically fills fields (sentiment, priority, tags)
 - **Multi-Provider** - Use OpenAI or Anthropic Claude
