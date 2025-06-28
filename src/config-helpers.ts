@@ -9,6 +9,8 @@ import {
   AIAdvancedOptions,
   OpenAIModelConfig,
   AnthropicModelConfig,
+  OllamaModelConfig,
+  VectorSearchConfig,
 } from "./types";
 
 /**
@@ -35,28 +37,46 @@ export const DEFAULT_CONFIG = {
     maxTokens: 200,
     temperature: 0.3,
   },
+  ollama: {
+    chatModel: "llama3.2",
+    embeddingModel: "nomic-embed-text",
+    maxTokens: 200,
+    temperature: 0.3,
+    endpoint: "http://localhost:11434",
+  },
+  vectorSearch: {
+    enabled: true,
+    indexName: "vector_index",
+    autoCreateIndex: true,
+    similarity: "cosine" as const,
+  },
 };
 
 /**
  * Validate API key format
  */
 export function validateApiKey(apiKey: string, provider: AIProvider): boolean {
-  if (typeof apiKey !== "string" || apiKey.length < 20) {
+  if (typeof apiKey !== "string" || apiKey.length < 2) {
     return false;
   }
 
   switch (provider) {
     case "openai":
-      return apiKey.startsWith("sk-");
+      return apiKey.startsWith("sk-") && apiKey.length > 20; // More strict validation
     case "anthropic":
-      return apiKey.startsWith("sk-ant-") || apiKey.length > 20;
+      return (
+        (apiKey.startsWith("sk-ant-") && apiKey.length > 30) ||
+        apiKey.length > 20
+      );
+    case "ollama":
+      return apiKey.length >= 2; // Ollama just needs non-empty string
     default:
       return false;
   }
 }
 
 /**
- * Create AI configuration with all options
+ * Create AI configuration with all options including vector search
  */
 export function createAdvancedAIConfig(options: {
   apiKey: string;
@@ -65,7 +85,10 @@ export function createAdvancedAIConfig(options: {
   field: string;
   prompt?: string;
   advanced?: Partial<AIAdvancedOptions>;
-  modelConfig?: Partial<OpenAIModelConfig | AnthropicModelConfig>;
+  modelConfig?: Partial<
+    OpenAIModelConfig | AnthropicModelConfig | OllamaModelConfig
+  >;
+  vectorSearch?: Partial<VectorSearchConfig>;
   includeFields?: string[];
   excludeFields?: string[];
   functions?: any[];
@@ -77,7 +100,9 @@ export function createAdvancedAIConfig(options: {
   const defaultModelConfig =
     options.provider === "openai"
       ? DEFAULT_CONFIG.openai
-      : DEFAULT_CONFIG.anthropic;
+      : options.provider === "anthropic"
+      ? DEFAULT_CONFIG.anthropic
+      : DEFAULT_CONFIG.ollama;
 
   return {
     model: options.model,
@@ -87,6 +112,7 @@ export function createAdvancedAIConfig(options: {
     prompt: options.prompt,
     advanced: { ...DEFAULT_CONFIG.advanced, ...options.advanced },
     modelConfig: { ...defaultModelConfig, ...options.modelConfig },
+    vectorSearch: { ...DEFAULT_CONFIG.vectorSearch, ...options.vectorSearch },
     includeFields: options.includeFields,
     excludeFields: options.excludeFields,
     functions: options.functions,
@@ -109,6 +135,34 @@ export function createAIConfig(options: {
   return createAdvancedAIConfig({
     ...options,
     provider: "openai", // Default to OpenAI for backward compatibility
+  });
+}
+
+/**
+ * Create Ollama AI configuration helper
+ */
+export function createOllamaConfig(options: {
+  model: AIModel;
+  field: string;
+  endpoint?: string;
+  chatModel?: string;
+  embeddingModel?: string;
+  prompt?: string;
+  advanced?: Partial<AIAdvancedOptions>;
+  vectorSearch?: Partial<VectorSearchConfig>;
+  includeFields?: string[];
+  excludeFields?: string[];
+  functions?: any[];
+}): AIConfig {
+  return createAdvancedAIConfig({
+    ...options,
+    apiKey: "local", // Placeholder for Ollama
+    provider: "ollama",
+    modelConfig: {
+      endpoint: options.endpoint,
+      chatModel: options.chatModel,
+      embeddingModel: options.embeddingModel,
+    },
   });
 }
 
@@ -143,10 +197,17 @@ export function estimateCost(
       "claude-3-sonnet-20240229": 0.003,
       "claude-3-opus-20240229": 0.015,
     },
+    ollama: {
+      // Local models have no API costs
+      "llama3.2": 0,
+      llama2: 0,
+      mistral: 0,
+      "nomic-embed-text": 0,
+    },
   };
 
   const providerPricing = pricing[provider];
-  const pricePerToken = providerPricing?.[model] || 0.002;
+  const pricePerToken = providerPricing?.[model] || 0;
   return (tokenCount / 1000) * pricePerToken;
 }
 
@@ -174,9 +235,11 @@ export function checkEnvironment(): {
 
   const env = globalThis.process.env;
 
-  // Check for API keys
+  // Check for API keys (at least one is needed unless using Ollama)
   if (!env.OPENAI_API_KEY && !env.ANTHROPIC_API_KEY) {
-    missing.push("OPENAI_API_KEY or ANTHROPIC_API_KEY environment variable");
+    missing.push(
+      "OPENAI_API_KEY, ANTHROPIC_API_KEY environment variable, or use Ollama for local processing"
+    );
   }
 
   if (env.OPENAI_API_KEY && !validateApiKey(env.OPENAI_API_KEY, "openai")) {

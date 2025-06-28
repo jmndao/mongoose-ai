@@ -1,11 +1,12 @@
 /**
- * mongoose-ai: AI-enhanced Mongoose plugin
+ * mongoose-ai: AI-enhanced Mongoose plugin with local LLM support
  */
 
 import {
   checkEnvironment,
   createAdvancedAIConfig,
   createAIConfig,
+  createOllamaConfig,
   DEFAULT_CONFIG,
   estimateCost,
   estimateTokenCount,
@@ -14,6 +15,7 @@ import {
 import { aiPlugin } from "./plugin";
 import { AnthropicProvider } from "./providers/anthropic";
 import { OpenAIProvider } from "./providers/openai";
+import { OllamaProvider } from "./providers/ollama";
 import { createFunction, QuickFunctions } from "./types";
 
 // Core plugin
@@ -22,45 +24,49 @@ export { aiPlugin } from "./plugin";
 // Providers
 export { OpenAIProvider } from "./providers/openai";
 export { AnthropicProvider } from "./providers/anthropic";
+export { OllamaProvider } from "./providers/ollama";
 
-// All types
+// All types (now modular)
 export type {
   AIModel,
   AIProvider,
+  LogLevel,
   AICredentials,
-  AIConfig,
-  AIPluginOptions,
-  SummaryResult,
-  EmbeddingResult,
-  SearchResult,
-  SemanticSearchOptions,
   AIAdvancedOptions,
   OpenAIModelConfig,
   AnthropicModelConfig,
+  OllamaModelConfig,
+  VectorSearchConfig,
+  AIConfig,
+  AIPluginOptions,
+  FunctionParameter,
+  AIFunction,
+  FunctionResult,
+  SummaryResult,
+  EmbeddingResult,
   AIProcessingStats,
   AIError,
-  AIDocument,
-  AIModelType,
+  SearchResult,
+  SemanticSearchOptions,
   AIDocumentMethods,
   AIModelStatics,
+  AIDocument,
+  AIModelType,
   WithAI,
   WithAIDocument,
-  LogLevel,
-  AIFunction,
-  FunctionParameter,
-  FunctionResult,
 } from "./types";
 
-// Function utilities from types
+// Function utilities
 export { QuickFunctions, createFunction } from "./types";
 
-// Type guards and utilities from types
+// Type guards and utilities
 export { hasAIMethods, hasAIDocumentMethods, isSearchResult } from "./types";
 
 // Configuration helpers
 export {
   createAIConfig,
   createAdvancedAIConfig,
+  createOllamaConfig,
   validateApiKey,
   estimateTokenCount,
   estimateCost,
@@ -68,16 +74,23 @@ export {
   DEFAULT_CONFIG,
 } from "./config-helpers";
 
+// Vector search utilities
+export {
+  detectVectorSearchSupport,
+  createVectorIndex,
+  cosineSimilarity,
+} from "./utils/vector-search";
+
 /**
  * Package version
  */
-export const VERSION = "1.3.4";
+export const VERSION = "1.5.0";
 
 /**
  * Supported models and providers
  */
 export const SUPPORTED_MODELS = ["summary", "embedding"] as const;
-export const SUPPORTED_PROVIDERS = ["openai", "anthropic"] as const;
+export const SUPPORTED_PROVIDERS = ["openai", "anthropic", "ollama"] as const;
 
 /**
  * Default export with core functionality (for backward compatibility)
@@ -87,6 +100,7 @@ const mongooseAI = {
   aiPlugin,
   OpenAIProvider,
   AnthropicProvider,
+  OllamaProvider,
 
   // Function utilities
   QuickFunctions,
@@ -95,6 +109,7 @@ const mongooseAI = {
   // Configuration helpers
   createAIConfig,
   createAdvancedAIConfig,
+  createOllamaConfig,
   validateApiKey,
   estimateTokenCount,
   estimateCost,

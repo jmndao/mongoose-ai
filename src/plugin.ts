@@ -1,5 +1,5 @@
 /**
- * Main mongoose-ai plugin with universal function calling
+ * Main mongoose-ai plugin with MongoDB Vector Search and Ollama support
  */
 
 import { Schema, Document } from "mongoose";
@@ -11,26 +11,18 @@ import {
   SearchResult,
   SemanticSearchOptions,
 } from "./types";
+import {
+  detectVectorSearchSupport,
+  createVectorIndex,
+  performVectorSearch,
+  performInMemorySearch,
+  cosineSimilarity,
+} from "./utils/vector-search";
 
 /**
- * Calculate cosine similarity between two vectors
+ * Track vector search capability per model
  */
-function cosineSimilarity(a: number[], b: number[]): number {
-  if (!a || !b || a.length !== b.length) return 0;
-
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
-
-  for (let i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
-  }
-
-  const denominator = Math.sqrt(normA) * Math.sqrt(normB);
-  return denominator === 0 ? 0 : dotProduct / denominator;
-}
+const vectorSearchCache = new WeakMap<any, boolean>();
 
 /**
  * Main plugin function
@@ -43,8 +35,11 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
     throw new Error("Valid model (summary|embedding) required");
   }
 
-  if (!config.provider || !["openai", "anthropic"].includes(config.provider)) {
-    throw new Error("Valid provider (openai|anthropic) required");
+  if (
+    !config.provider ||
+    !["openai", "anthropic", "ollama"].includes(config.provider)
+  ) {
+    throw new Error("Valid provider (openai|anthropic|ollama) required");
   }
 
   if (
@@ -87,6 +82,15 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
       }`
     );
   }
+
+  // Set default vector search config
+  const vectorSearchConfig = {
+    enabled: true,
+    indexName: "vector_index",
+    autoCreateIndex: true,
+    similarity: "cosine" as const,
+    ...config.vectorSearch,
+  };
 
   // Add field to schema based on model type
   if (config.model === "summary") {
@@ -166,7 +170,7 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
       return cosineSimilarity(thisEmbedding, otherEmbedding);
     };
 
-    // Add semantic search static methods
+    // Add semantic search static methods with vector search support
     schema.statics.semanticSearch = async function (
       query: string,
       options: SemanticSearchOptions = {}
@@ -182,36 +186,36 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
         const queryResult = await provider.generateEmbedding(query);
         const queryEmbedding = queryResult.embedding;
 
-        // Find documents with embeddings
-        const docs = await this.find({
-          ...filter,
-          [`${config.field}.embedding`]: { $exists: true },
-        });
+        // Check if we should use vector search
+        const shouldUseVectorSearch = await determineSearchMethod(
+          this,
+          options,
+          vectorSearchConfig
+        );
 
-        const results: SearchResult[] = [];
+        if (shouldUseVectorSearch) {
+          // Ensure vector index exists
+          await ensureVectorIndex(
+            this,
+            config.field,
+            queryEmbedding.length,
+            vectorSearchConfig
+          );
 
-        for (const doc of docs) {
-          const docEmbedding = doc[config.field]?.embedding;
-          if (!docEmbedding) continue;
-
-          const similarity = cosineSimilarity(queryEmbedding, docEmbedding);
-
-          if (similarity >= threshold) {
-            results.push({
-              document: doc,
-              similarity,
-              metadata: {
-                field: config.field,
-                distance: 1 - similarity,
-              },
-            });
-          }
+          return await performVectorSearch(this, queryEmbedding, config.field, {
+            ...options,
+            indexName: vectorSearchConfig.indexName,
+            numCandidates: options.numCandidates || limit * 10,
+          });
+        } else {
+          // Fall back to in-memory search
+          return await performInMemorySearch(
+            this,
+            queryEmbedding,
+            config.field,
+            options
+          );
         }
-
-        // Sort by similarity and limit
-        return results
-          .sort((a, b) => b.similarity - a.similarity)
-          .slice(0, limit);
       } catch (error) {
         throw new Error(
           `Semantic search failed: ${
@@ -237,35 +241,35 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
       const { limit = 10, threshold = 0.7, filter = {} } = options;
 
       try {
-        const docs = await this.find({
-          ...filter,
-          _id: { $ne: document._id },
-          [`${config.field}.embedding`]: { $exists: true },
-        });
+        // Check if we should use vector search
+        const shouldUseVectorSearch = await determineSearchMethod(
+          this,
+          options,
+          vectorSearchConfig
+        );
 
-        const results: SearchResult[] = [];
+        if (shouldUseVectorSearch) {
+          // Ensure vector index exists
+          await ensureVectorIndex(
+            this,
+            config.field,
+            refEmbedding.length,
+            vectorSearchConfig
+          );
 
-        for (const doc of docs) {
-          const docEmbedding = doc[config.field]?.embedding;
-          if (!docEmbedding) continue;
-
-          const similarity = cosineSimilarity(refEmbedding, docEmbedding);
-
-          if (similarity >= threshold) {
-            results.push({
-              document: doc,
-              similarity,
-              metadata: {
-                field: config.field,
-                distance: 1 - similarity,
-              },
-            });
-          }
+          return await performVectorSearch(this, refEmbedding, config.field, {
+            ...options,
+            filter: { ...filter, _id: { $ne: document._id } },
+            indexName: vectorSearchConfig.indexName,
+            numCandidates: options.numCandidates || limit * 10,
+          });
+        } else {
+          // Fall back to in-memory search
+          return await performInMemorySearch(this, refEmbedding, config.field, {
+            ...options,
+            filter: { ...filter, _id: { $ne: document._id } },
+          });
         }
-
-        return results
-          .sort((a, b) => b.similarity - a.similarity)
-          .slice(0, limit);
       } catch (error) {
         throw new Error(
           `Find similar failed: ${
@@ -308,6 +312,61 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
       }
     }
   });
+}
+
+/**
+ * Determine whether to use vector search or in-memory search
+ */
+async function determineSearchMethod(
+  model: any,
+  options: SemanticSearchOptions,
+  vectorSearchConfig: any
+): Promise<boolean> {
+  // If explicitly disabled in config
+  if (vectorSearchConfig.enabled === false) {
+    return false;
+  }
+
+  // If explicitly specified in options
+  if (options.useVectorSearch !== undefined) {
+    return options.useVectorSearch;
+  }
+
+  // Check cache first
+  if (vectorSearchCache.has(model)) {
+    return vectorSearchCache.get(model)!;
+  }
+
+  // Detect vector search support
+  try {
+    const isSupported = await detectVectorSearchSupport(model);
+    vectorSearchCache.set(model, isSupported);
+    return isSupported;
+  } catch (error) {
+    vectorSearchCache.set(model, false);
+    return false;
+  }
+}
+
+/**
+ * Ensure vector index exists for the model
+ */
+async function ensureVectorIndex(
+  model: any,
+  fieldName: string,
+  dimensions: number,
+  vectorSearchConfig: any
+): Promise<void> {
+  try {
+    await createVectorIndex(model, fieldName, dimensions, vectorSearchConfig);
+  } catch (error) {
+    console.warn(
+      `Failed to create vector index: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+    // Don't throw - fall back to in-memory search
+  }
 }
 
 /**

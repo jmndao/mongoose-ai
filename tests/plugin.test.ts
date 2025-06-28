@@ -27,6 +27,9 @@ jest.mock("openai", () => {
   };
 });
 
+// Mock fetch for Ollama tests
+global.fetch = jest.fn();
+
 describe("mongoose-ai plugin", () => {
   describe("validateApiKey", () => {
     it("should validate correct OpenAI API key format", () => {
@@ -34,24 +37,38 @@ describe("mongoose-ai plugin", () => {
         validateApiKey("sk-1234567890abcdef1234567890abcdef12345678", "openai")
       ).toBe(true);
       expect(
-        validateApiKey("sk-proj-1234567890abcdef1234567890abcdef12345678", "openai")
+        validateApiKey(
+          "sk-proj-1234567890abcdef1234567890abcdef12345678",
+          "openai"
+        )
       ).toBe(true);
     });
 
     it("should validate correct Anthropic API key format", () => {
       expect(
-        validateApiKey("sk-ant-1234567890abcdef1234567890abcdef12345678", "anthropic")
+        validateApiKey(
+          "sk-ant-1234567890abcdef1234567890abcdef12345678",
+          "anthropic"
+        )
       ).toBe(true);
       expect(
         validateApiKey("1234567890abcdef1234567890abcdef12345678", "anthropic")
       ).toBe(true);
     });
 
+    it("should validate Ollama API key (always true)", () => {
+      expect(validateApiKey("local", "ollama")).toBe(true);
+      expect(validateApiKey("any-value", "ollama")).toBe(true);
+      expect(validateApiKey("", "ollama")).toBe(false); // Still reject empty strings
+    });
+
     it("should reject invalid API key formats", () => {
       expect(validateApiKey("", "openai")).toBe(false);
       expect(validateApiKey("invalid-key", "openai")).toBe(false);
-      expect(validateApiKey("sk-short", "openai")).toBe(false);
-      expect(validateApiKey("pk-1234567890abcdef1234567890abcdef12345678", "openai")).toBe(false);
+      expect(validateApiKey("sk-short", "openai")).toBe(false); // Updated: now returns false correctly
+      expect(
+        validateApiKey("pk-1234567890abcdef1234567890abcdef12345678", "openai")
+      ).toBe(false);
       expect(validateApiKey("sk-", "openai")).toBe(false);
     });
 
@@ -155,7 +172,50 @@ describe("mongoose-ai plugin", () => {
               credentials: { apiKey: "sk-test123456789012345678901234567890" },
             },
           });
-        }).toThrow("Valid provider (openai|anthropic) required");
+        }).toThrow("Valid provider (openai|anthropic|ollama) required"); // Updated error message
+      });
+
+      it("should accept all valid provider types", () => {
+        // Test OpenAI
+        expect(() => {
+          const openaiSchema = schema.clone();
+          openaiSchema.plugin(aiPlugin, {
+            ai: {
+              model: "summary",
+              provider: "openai",
+              field: "openaiField",
+              credentials: { apiKey: "sk-test123456789012345678901234567890" },
+            },
+          });
+        }).not.toThrow();
+
+        // Test Anthropic
+        expect(() => {
+          const anthropicSchema = schema.clone();
+          anthropicSchema.plugin(aiPlugin, {
+            ai: {
+              model: "summary",
+              provider: "anthropic",
+              field: "anthropicField",
+              credentials: {
+                apiKey: "sk-ant-test123456789012345678901234567890",
+              },
+            },
+          });
+        }).not.toThrow();
+
+        // Test Ollama
+        expect(() => {
+          const ollamaSchema = schema.clone();
+          ollamaSchema.plugin(aiPlugin, {
+            ai: {
+              model: "summary",
+              provider: "ollama",
+              field: "ollamaField",
+              credentials: { apiKey: "local" },
+            },
+          });
+        }).not.toThrow();
       });
 
       it("should require field name", () => {
@@ -212,6 +272,20 @@ describe("mongoose-ai plugin", () => {
 
         expect(schema.paths.searchEmbedding).toBeDefined();
         expect(schema.paths.searchEmbedding.schema).toBeDefined();
+      });
+
+      it("should add Ollama fields to schema", () => {
+        schema.plugin(aiPlugin, {
+          ai: {
+            model: "summary",
+            provider: "ollama",
+            field: "ollmaSummary",
+            credentials: { apiKey: "local" },
+          },
+        });
+
+        expect(schema.paths.ollmaSummary).toBeDefined();
+        expect(schema.paths.ollmaSummary.schema).toBeDefined();
       });
 
       it("should throw error for duplicate field names", () => {
@@ -273,6 +347,20 @@ describe("mongoose-ai plugin", () => {
         expect(typeof schema.methods.calculateSimilarity).toBe("function");
       });
 
+      it("should add calculateSimilarity method for Ollama embedding models", () => {
+        schema.plugin(aiPlugin, {
+          ai: {
+            model: "embedding",
+            provider: "ollama",
+            field: "ollamaEmbedding",
+            credentials: { apiKey: "local" },
+          },
+        });
+
+        expect(schema.methods.calculateSimilarity).toBeDefined();
+        expect(typeof schema.methods.calculateSimilarity).toBe("function");
+      });
+
       it("should not add calculateSimilarity method for summary models", () => {
         schema.plugin(aiPlugin, {
           ai: {
@@ -295,6 +383,23 @@ describe("mongoose-ai plugin", () => {
             provider: "openai",
             field: "searchEmbedding",
             credentials: { apiKey: "sk-test123456789012345678901234567890" },
+          },
+        });
+
+        expect(schema.statics.semanticSearch).toBeDefined();
+        expect(typeof schema.statics.semanticSearch).toBe("function");
+
+        expect(schema.statics.findSimilar).toBeDefined();
+        expect(typeof schema.statics.findSimilar).toBe("function");
+      });
+
+      it("should add semantic search methods for Ollama embedding models", () => {
+        schema.plugin(aiPlugin, {
+          ai: {
+            model: "embedding",
+            provider: "ollama",
+            field: "ollamaEmbedding",
+            credentials: { apiKey: "local" },
           },
         });
 
@@ -334,6 +439,19 @@ describe("mongoose-ai plugin", () => {
         }).not.toThrow();
       });
 
+      it("should apply Ollama plugin without errors", () => {
+        expect(() => {
+          schema.plugin(aiPlugin, {
+            ai: {
+              model: "summary",
+              provider: "ollama",
+              field: "ollmaSummary",
+              credentials: { apiKey: "local" },
+            },
+          });
+        }).not.toThrow();
+      });
+
       it("should apply plugin with advanced configuration", () => {
         expect(() => {
           schema.plugin(aiPlugin, {
@@ -361,6 +479,7 @@ describe("mongoose-ai plugin", () => {
       it("should handle multiple plugin applications on different fields", () => {
         const summarySchema = schema.clone();
         const embeddingSchema = schema.clone();
+        const ollamaSchema = schema.clone();
 
         expect(() => {
           summarySchema.plugin(aiPlugin, {
@@ -380,6 +499,15 @@ describe("mongoose-ai plugin", () => {
               credentials: { apiKey: "sk-test123456789012345678901234567890" },
             },
           });
+
+          ollamaSchema.plugin(aiPlugin, {
+            ai: {
+              model: "summary",
+              provider: "ollama",
+              field: "ollmaSummary",
+              credentials: { apiKey: "local" },
+            },
+          });
         }).not.toThrow();
 
         // Summary schema should have summary field and methods
@@ -393,6 +521,12 @@ describe("mongoose-ai plugin", () => {
         expect(embeddingSchema.methods.getAIContent).toBeDefined();
         expect(embeddingSchema.methods.calculateSimilarity).toBeDefined();
         expect(embeddingSchema.statics.semanticSearch).toBeDefined();
+
+        // Ollama schema should have summary field and methods
+        expect(ollamaSchema.paths.ollmaSummary).toBeDefined();
+        expect(ollamaSchema.methods.getAIContent).toBeDefined();
+        expect(ollamaSchema.methods.calculateSimilarity).toBeUndefined();
+        expect(ollamaSchema.statics.semanticSearch).toBeUndefined();
       });
 
       it("should handle invalid OpenAI configuration gracefully", () => {
@@ -475,6 +609,19 @@ describe("mongoose-ai plugin", () => {
             },
           });
         }).toThrow("API key required");
+      });
+
+      it("should accept Ollama with minimal API key", () => {
+        expect(() => {
+          schema.plugin(aiPlugin, {
+            ai: {
+              model: "summary",
+              provider: "ollama",
+              field: "aiSummary",
+              credentials: { apiKey: "local" },
+            },
+          });
+        }).not.toThrow();
       });
     });
   });

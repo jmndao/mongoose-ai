@@ -1,27 +1,21 @@
 # mongoose-ai
 
-**Add AI powers to your Mongoose schemas**
+**AI-powered Mongoose plugin for intelligent document processing**
 
 [![npm version](https://img.shields.io/npm/v/@jmndao/mongoose-ai.svg)](https://www.npmjs.com/package/@jmndao/mongoose-ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 
-Automatically generate summaries, classify content, and search documents using AI. Works with OpenAI and Anthropic.
-
-## Latest Features
-
-- **Function Calling** - AI automatically fills fields (sentiment, priority, tags)
-- **Multi-Provider** - Use OpenAI or Anthropic Claude  
-- **100% Compatible** - All previous versions still work
-
-[![npm version](https://img.shields.io/npm/v/@jmndao/mongoose-ai.svg)](https://www.npmjs.com/package/@jmndao/mongoose-ai)
+Automatically generate summaries, classify content, and search documents using AI. Works with OpenAI, Anthropic, and local LLMs via Ollama. Includes MongoDB Atlas Vector Search support for production-scale semantic search.
 
 ## Features
 
 - Auto-generate summaries when documents are saved
 - AI classifies and tags content automatically
+- High-performance semantic search with MongoDB Vector Search
+- Privacy-first local AI processing with Ollama
 - Search documents using natural language
-- Works with OpenAI GPT and Anthropic Claude
+- Works with OpenAI GPT, Anthropic Claude, and local LLMs
 - Full TypeScript support
 - Built for production use
 
@@ -65,22 +59,55 @@ const article = new Article({
 });
 
 await article.save();
-console.log(article.aiSummary.summary); // AI-generated summary
+console.log(article.aiSummary.summary);
 ```
 
-### Function Calling (Auto-Classification)
+### Local AI with Ollama
 
 ```typescript
-import {
-  aiPlugin,
-  createAdvancedAIConfig,
-  QuickFunctions,
-} from "@jmndao/mongoose-ai";
+import { createOllamaConfig } from "@jmndao/mongoose-ai";
+
+// Zero cost, privacy-first AI processing
+articleSchema.plugin(aiPlugin, {
+  ai: createOllamaConfig({
+    model: "summary",
+    field: "aiSummary",
+    chatModel: "llama3.2",
+  }),
+});
+
+// Setup: ollama pull llama3.2
+```
+
+### Semantic Search
+
+```typescript
+import { createAdvancedAIConfig } from "@jmndao/mongoose-ai";
+
+articleSchema.plugin(aiPlugin, {
+  ai: createAdvancedAIConfig({
+    apiKey: process.env.OPENAI_API_KEY,
+    provider: "openai",
+    model: "embedding",
+    field: "aiEmbedding",
+  }),
+});
+
+// Search documents using natural language
+const results = await Article.semanticSearch(
+  "artificial intelligence and neural networks",
+  { limit: 5, threshold: 0.7 }
+);
+```
+
+### Function Calling
+
+```typescript
+import { QuickFunctions } from "@jmndao/mongoose-ai";
 
 const reviewSchema = new mongoose.Schema({
   productName: String,
   reviewText: String,
-  // AI fills these automatically
   sentiment: String,
   rating: Number,
   tags: [String],
@@ -92,9 +119,7 @@ reviewSchema.plugin(aiPlugin, {
     provider: "openai",
     model: "summary",
     field: "aiSummary",
-    advanced: {
-      enableFunctions: true,
-    },
+    advanced: { enableFunctions: true },
     functions: [
       QuickFunctions.updateField("sentiment", [
         "positive",
@@ -108,75 +133,88 @@ reviewSchema.plugin(aiPlugin, {
 });
 
 // AI automatically fills sentiment, rating, and tags
-const review = new Review({
-  productName: "Wireless Headphones",
-  reviewText: "Great sound quality! Love the battery life.",
-});
-
-await review.save();
-console.log(review.sentiment); // "positive"
-console.log(review.rating); // 4
-console.log(review.tags); // ["sound-quality", "battery-life"]
 ```
+
+## Provider Comparison
+
+| Feature     | OpenAI          | Anthropic       | Ollama             |
+| ----------- | --------------- | --------------- | ------------------ |
+| Cost        | $1.50/1M tokens | $0.25/1M tokens | $0.00              |
+| Privacy     | External API    | External API    | 100% Local         |
+| Setup       | API key         | API key         | Local install      |
+| Offline     | No              | No              | Yes                |
+| Performance | Excellent       | Excellent       | Hardware dependent |
+
+## Performance
+
+### Processing Speed
+
+- Basic summarization: ~1.6 seconds per document
+- Function calling: ~2.1 seconds per document
+- Local processing: 2-10 seconds per document (hardware dependent)
+
+### Search Performance
+
+- MongoDB Atlas Vector Search: Sub-100ms on millions of documents
+- In-memory search: Good for development and small datasets
+- Automatic optimization based on deployment
+
+### Cost Analysis
+
+- Cloud providers: $0.42-$1.39 per 1000 documents
+- Local processing: $0.00 per document
+- Vector search: 10-3000x faster than traditional search
 
 ## Documentation
 
 ### Core Guides
 
 - **[Get Started](docs/get-started.md)** - Setup and first steps
+- **[Configuration](docs/configuration.md)** - All providers and options
 - **[Function Calling](docs/function-calling.md)** - Auto-classification
-- **[Configuration](docs/configuration.md)** - All options
-- **[Migration](docs/migration.md)** - Upgrade from v1.0.x
+- **[Migration](docs/migration.md)** - Upgrade guides
 
 ### Reference
 
 - **[API Reference](docs/api-reference.md)** - Methods and types
-- **[Types Reference](docs/types-reference.md)** - Type definitions
-- **[Performance](docs/performance.md)** - Speed and costs
+- **[Types Reference](docs/types-reference.md)** - TypeScript definitions
+- **[Performance](docs/performance.md)** - Optimization strategies
 
 ### Advanced
 
 - **[Usage Examples](docs/examples/usage-examples.md)** - Real-world examples
-- **[Scaling Guide](docs/guides/scaling-guide.md)** - Large projects
+- **[Scaling Guide](docs/guides/scaling-guide.md)** - Large deployments
 - **[Docker Setup](docs/guides/docker-setup.md)** - Development setup
-- **[Benchmark Results](docs/annexes/benchmark-results.md)** - Performance data
-
-## Setup
-
-Create a `.env` file:
-
-```bash
-OPENAI_API_KEY=your_openai_key_here
-ANTHROPIC_API_KEY=your_anthropic_key_here
-MONGODB_URI=mongodb://localhost:27017/your_database
-```
 
 ## Requirements
 
 - Node.js 16+
 - Mongoose 7+
-- OpenAI or Anthropic API key
-
-## Performance
-
-- **Basic**: ~$0.42 per 1000 documents, 1.6 seconds each
-- **Function Calling**: ~$1.39 per 1000 documents, 2.1 seconds each
-
-Function calling costs more but saves manual work.
+- API key (OpenAI/Anthropic) or Ollama installation
 
 ## Examples
 
-Check the `examples/` folder:
+Run example demonstrations:
 
-- `basic-usage.ts` - Simple examples
-- `function-calling-usage.ts` - Auto-classification
-- `advanced-usage.ts` - Complex setups
-- `benchmark-demo.ts` - Performance tests
+```bash
+npm run example:basic           # Basic usage
+npm run example:functions       # Function calling
+npm run example:vector-search   # Semantic search
+npm run example:ollama          # Local LLM processing
+npm run example:benchmark       # Performance testing
+```
 
-## Support
+## Migration
 
-- **Issues**: [GitHub Issues](https://github.com/jmndao/mongoose-ai/issues)
-- **Docs**: [Full Documentation](docs/)
+### From v1.3.x to v1.4.0
+
+- Local LLM support is additive with zero breaking changes
+- All existing code continues to work unchanged
+- Add Ollama support optionally
+
+- Vector search is automatic and backward compatible
+- No configuration changes required
+- Performance improvements on MongoDB Atlas
 
 ## License
 
@@ -184,4 +222,4 @@ MIT © [Jonathan Moussa NDAO](https://github.com/jmndao)
 
 ---
 
-**Built for MongoDB and AI developers**
+**For detailed documentation, configuration options, and advanced usage, see the [docs](docs/) directory.**

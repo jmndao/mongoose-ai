@@ -4,12 +4,14 @@
 
 import { OpenAIProvider } from "./openai";
 import { AnthropicProvider } from "./anthropic";
+import { OllamaProvider } from "./ollama";
 import { AIProviderInterface } from "./base";
 import {
   AIProvider,
   AICredentials,
   OpenAIModelConfig,
   AnthropicModelConfig,
+  OllamaModelConfig,
   AIAdvancedOptions,
 } from "../types";
 
@@ -19,7 +21,7 @@ import {
 export function createProvider(
   provider: AIProvider,
   credentials: AICredentials,
-  modelConfig?: OpenAIModelConfig | AnthropicModelConfig,
+  modelConfig?: OpenAIModelConfig | AnthropicModelConfig | OllamaModelConfig,
   advancedOptions?: AIAdvancedOptions
 ): AIProviderInterface {
   switch (provider) {
@@ -34,6 +36,13 @@ export function createProvider(
       return new AnthropicProvider(
         credentials,
         modelConfig as AnthropicModelConfig,
+        advancedOptions
+      );
+
+    case "ollama":
+      return new OllamaProvider(
+        credentials,
+        modelConfig as OllamaModelConfig,
         advancedOptions
       );
 
@@ -52,6 +61,7 @@ export function validateProviderModel(
   const supportedModels = {
     openai: ["summary", "embedding"],
     anthropic: ["summary"], // Anthropic doesn't support embeddings
+    ollama: ["summary", "embedding"], // Ollama supports both
   };
 
   const supported = supportedModels[provider];
