@@ -43,7 +43,7 @@ export interface OpenAIModelConfig {
  * Anthropic specific model configuration
  */
 export interface AnthropicModelConfig {
-  /** Chat model for summaries (default: 'claude-3-haiku-20240307') */
+  /** Chat model for summaries (default: 'claude-haiku-4-5') */
   chatModel?: string;
   /** Max tokens for summaries (default: 200) */
   maxTokens?: number;

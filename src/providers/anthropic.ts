@@ -29,7 +29,7 @@ export class AnthropicProvider extends BaseProvider {
 
     // Set default configurations
     this.config = {
-      chatModel: modelConfig.chatModel || "claude-3-haiku-20240307",
+      chatModel: modelConfig.chatModel || "claude-haiku-4-5",
       maxTokens: modelConfig.maxTokens || 200,
       temperature: modelConfig.temperature || 0.3,
     };
@@ -322,9 +322,9 @@ Make sure to use all the available tools to classify this content.`,
     continueOnError: true,
   },
 
-  // Use newer Claude model for better function calling
+  // Use Sonnet 4.6 for better function calling than Haiku
   modelConfig: {
-    chatModel: "claude-3-sonnet-20240229", // Better function calling than Haiku
+    chatModel: "claude-sonnet-4-6",
     maxTokens: 300, // Bit more tokens for function calling
     temperature: 0.1, // Lower temperature for more consistent function calling
   },

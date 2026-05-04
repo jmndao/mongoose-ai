@@ -71,7 +71,7 @@ interface OpenAIModelConfig {
 
 ```typescript
 interface AnthropicModelConfig {
-  chatModel?: string; // Default: "claude-3-haiku-20240307"
+  chatModel?: string; // Default: "claude-haiku-4-5"
   maxTokens?: number; // Default: 200
   temperature?: number; // Default: 0.3
 }

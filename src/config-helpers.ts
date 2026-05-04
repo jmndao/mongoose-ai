@@ -33,7 +33,7 @@ export const DEFAULT_CONFIG = {
     temperature: 0.3,
   },
   anthropic: {
-    chatModel: "claude-3-haiku-20240307",
+    chatModel: "claude-haiku-4-5",
     maxTokens: 200,
     temperature: 0.3,
   },
@@ -193,6 +193,9 @@ export function estimateCost(
       "text-embedding-3-large": 0.00013,
     },
     anthropic: {
+      "claude-haiku-4-5": 0.001,
+      "claude-sonnet-4-6": 0.003,
+      "claude-opus-4-7": 0.015,
       "claude-3-haiku-20240307": 0.00025,
       "claude-3-sonnet-20240229": 0.003,
       "claude-3-opus-20240229": 0.015,
