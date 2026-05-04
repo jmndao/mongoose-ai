@@ -62,7 +62,8 @@ export function aiPlugin(schema: Schema, options: AIPluginOptions): void {
   validateProviderModel(config.provider, config.model);
 
   // Check if field already exists in schema
-  if (schema.paths[config.field] || schema.virtuals[config.field]) {
+  const virtuals = schema.virtuals as Record<string, unknown>;
+  if (schema.paths[config.field] || virtuals[config.field]) {
     throw new Error(`Field "${config.field}" already exists in schema`);
   }
 
