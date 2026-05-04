@@ -179,7 +179,7 @@ modelConfig: {
 
 ```typescript
 modelConfig: {
-  chatModel: "claude-3-sonnet-20240229", // or "claude-3-haiku-20240307"
+  chatModel: "claude-haiku-4-5",         // default; or "claude-sonnet-4-6", "claude-opus-4-7"
   maxTokens: 200,
   temperature: 0.3,
 }
@@ -233,7 +233,7 @@ ai: createAdvancedAIConfig({
   model: "summary", // No embeddings available
   field: "aiSummary",
   modelConfig: {
-    chatModel: "claude-3-sonnet-20240229",
+    chatModel: "claude-sonnet-4-6",
     maxTokens: 150,
   },
 });
