@@ -29,7 +29,7 @@ export interface AIAdvancedOptions {
  * OpenAI specific model configuration
  */
 export interface OpenAIModelConfig {
-  /** Chat model for summaries (default: 'gpt-3.5-turbo') */
+  /** Chat model for summaries (default: 'gpt-4o-mini') */
   chatModel?: string;
   /** Embedding model (default: 'text-embedding-3-small') */
   embeddingModel?: string;

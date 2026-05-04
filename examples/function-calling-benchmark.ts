@@ -120,7 +120,7 @@ async function benchmarkBasicProcessing() {
 
     const processingTime = Date.now() - docStart;
     const tokens = article.aiSummary?.tokenCount || 0;
-    const cost = estimateCost(tokens, "gpt-3.5-turbo");
+    const cost = estimateCost(tokens, "gpt-4o-mini");
 
     results.push({
       title: article.title,
@@ -166,7 +166,7 @@ async function benchmarkFunctionCalling() {
 
     const processingTime = Date.now() - docStart;
     const tokens = article.aiSummary?.tokenCount || 0;
-    const cost = estimateCost(tokens, "gpt-3.5-turbo");
+    const cost = estimateCost(tokens, "gpt-4o-mini");
     const functionsExecuted = article.aiSummary?.functionResults?.length || 0;
 
     results.push({

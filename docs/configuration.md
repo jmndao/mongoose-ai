@@ -168,7 +168,7 @@ schema.plugin(aiPlugin, {
 
 ```typescript
 modelConfig: {
-  chatModel: "gpt-4",                    // or "gpt-3.5-turbo", "gpt-4o-mini"
+  chatModel: "gpt-4o-mini",              // default; or "gpt-4o", "gpt-4"
   embeddingModel: "text-embedding-3-small", // or "text-embedding-3-large"
   maxTokens: 200,                        // Response length
   temperature: 0.3,                      // Creativity (0-1)

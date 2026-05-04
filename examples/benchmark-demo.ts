@@ -70,7 +70,7 @@ async function runSimpleBenchmark() {
 
       const articleTime = Date.now() - articleStart;
       const tokens = article.aiSummary?.tokenCount || 0;
-      const cost = estimateCost(tokens, "gpt-3.5-turbo");
+      const cost = estimateCost(tokens, "gpt-4o-mini");
 
       results.push({
         title: article.title,

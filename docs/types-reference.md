@@ -60,7 +60,7 @@ interface AIAdvancedOptions {
 
 ```typescript
 interface OpenAIModelConfig {
-  chatModel?: string; // Default: "gpt-3.5-turbo"
+  chatModel?: string; // Default: "gpt-4o-mini"
   embeddingModel?: string; // Default: "text-embedding-3-small"
   maxTokens?: number; // Default: 200
   temperature?: number; // Default: 0.3

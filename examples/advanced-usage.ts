@@ -323,7 +323,7 @@ async function showPerformanceStats() {
   console.log(`Total tokens: ${totalTokens}`);
   console.log(`Avg processing time: ${avgProcessingTime.toFixed(2)}ms`);
   console.log(
-    `Estimated cost: $${estimateCost(totalTokens, "gpt-3.5-turbo").toFixed(4)}`
+    `Estimated cost: $${estimateCost(totalTokens, "gpt-4o-mini").toFixed(4)}`
   );
 }
 

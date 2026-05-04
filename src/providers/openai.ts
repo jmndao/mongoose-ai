@@ -28,7 +28,7 @@ export class OpenAIProvider extends BaseProvider {
 
     // Set default configurations
     this.config = {
-      chatModel: modelConfig.chatModel || "gpt-3.5-turbo",
+      chatModel: modelConfig.chatModel || "gpt-4o-mini",
       embeddingModel: modelConfig.embeddingModel || "text-embedding-3-small",
       maxTokens: modelConfig.maxTokens || 200,
       temperature: modelConfig.temperature || 0.3,

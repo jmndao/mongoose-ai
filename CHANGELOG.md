@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Default OpenAI chat model is now `gpt-4o-mini` (was `gpt-3.5-turbo`). `gpt-3.5-turbo` was deprecated by OpenAI in March 2025 and `gpt-4o-mini` is ~60% cheaper for equivalent or better quality. Users overriding `chatModel` are unaffected. ([#1](https://github.com/jmndao/mongoose-ai/issues/1))
+
 ## [1.3.4] - 2025-06-28
 
 ### Changed
