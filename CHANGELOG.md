@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Default OpenAI chat model is now `gpt-4o-mini` (was `gpt-3.5-turbo`). `gpt-3.5-turbo` was deprecated by OpenAI in March 2025 and `gpt-4o-mini` is ~60% cheaper for equivalent or better quality. Users overriding `chatModel` are unaffected. ([#1](https://github.com/jmndao/mongoose-ai/issues/1))
 - Default Anthropic chat model is now `claude-haiku-4-5` (was `claude-3-haiku-20240307`). Claude Haiku 4.5 (released Oct 2025) has significantly better instruction-following and tool use at similar pricing. Users overriding `chatModel` are unaffected. Pricing-table entries added for `claude-haiku-4-5`, `claude-sonnet-4-6`, and `claude-opus-4-7`. ([#5](https://github.com/jmndao/mongoose-ai/issues/5))
+- Enabled TypeScript `strict` mode for the library (`tsconfig.json`). Removes the `noImplicitAny: false` / `noImplicitThis: false` escape hatches and tightens type-checking on the published source. No public API changes. ([#4](https://github.com/jmndao/mongoose-ai/issues/4))
 
 ## [1.3.4] - 2025-06-28
 
