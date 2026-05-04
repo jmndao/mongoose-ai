@@ -290,7 +290,7 @@ import { estimateCost, estimateTokenCount } from "@jmndao/mongoose-ai";
 // Estimate costs before processing
 const content = "Your document content...";
 const tokens = estimateTokenCount(content);
-const cost = estimateCost(tokens, "gpt-3.5-turbo");
+const cost = estimateCost(tokens, "gpt-4o-mini");
 
 console.log(`Estimated cost: $${cost.toFixed(6)}`);
 
@@ -300,7 +300,7 @@ const totalTokens = articles.reduce(
   (sum, article) => sum + (article.aiSummary?.tokenCount || 0),
   0
 );
-const totalCost = estimateCost(totalTokens, "gpt-3.5-turbo");
+const totalCost = estimateCost(totalTokens, "gpt-4o-mini");
 ```
 
 ## Error Handling

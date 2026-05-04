@@ -27,7 +27,7 @@ export const DEFAULT_CONFIG = {
     enableFunctions: false,
   },
   openai: {
-    chatModel: "gpt-3.5-turbo",
+    chatModel: "gpt-4o-mini",
     embeddingModel: "text-embedding-3-small",
     maxTokens: 200,
     temperature: 0.3,
