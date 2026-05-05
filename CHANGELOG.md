@@ -1,8 +1,16 @@
 # Changelog
 
-Starting with v1.5.0, releases are tracked at <https://github.com/jmndao/mongoose-ai/releases>. The historical entries below cover earlier versions that pre-date the GitHub Releases workflow.
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Per-version notes from v1.6.0 onward are also published as [GitHub Releases](https://github.com/jmndao/mongoose-ai/releases) and are auto-generated from [Changesets](https://github.com/changesets/changesets) entries.
 
-This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## 1.6.0
+
+Releases are now published automatically from GitHub Actions with npm provenance, via Changesets and npm Trusted Publishing (OIDC). No more laptop-driven `npm publish`. See [the release notes](https://github.com/jmndao/mongoose-ai/releases/tag/v1.6.0) for full details.
+
+## 1.5.0 — Modern defaults
+
+- Default OpenAI chat model: `gpt-3.5-turbo` → `gpt-4o-mini` ([#1](https://github.com/jmndao/mongoose-ai/issues/1))
+- Default Anthropic chat model: `claude-3-haiku-20240307` → `claude-haiku-4-5` ([#5](https://github.com/jmndao/mongoose-ai/issues/5))
+- Enabled TypeScript `strict` mode ([#4](https://github.com/jmndao/mongoose-ai/issues/4))
 
 ## [1.3.4] - 2025-06-28
 

@@ -1,6 +1,9 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
-  "changelog": false,
+  "changelog": [
+    "@changesets/changelog-github",
+    { "repo": "jmndao/mongoose-ai" }
+  ],
   "commit": false,
   "fixed": [],
   "linked": [],
