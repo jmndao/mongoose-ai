@@ -92,10 +92,26 @@ npm run validate      # Run all checks
 
 ### Pull Request Process
 
-1. Ensure all tests pass
+1. Ensure all tests pass (`npm run validate`)
 2. Update documentation if needed
-3. Add changeset entry if applicable
+3. **Add a changeset** describing your change (see below). PRs without a changeset will not produce a release entry.
 4. Submit pull request with clear description
+
+### Changesets (release notes)
+
+Releases are managed by [Changesets](https://github.com/changesets/changesets). Each user-facing change gets a markdown file in `.changeset/` describing it:
+
+```bash
+npx changeset
+```
+
+The CLI will prompt you to:
+- Pick the bump type — `patch` (bug fix), `minor` (new feature, backwards-compatible), or `major` (breaking change).
+- Write a one-paragraph summary that will appear in the GitHub Release notes.
+
+Commit the generated `.changeset/<random-name>.md` file with your code change.
+
+Internal-only changes (CI tweaks, repo housekeeping, doc-only edits) don't need a changeset.
 
 ### Pull Request Guidelines
 
@@ -171,12 +187,13 @@ For new features:
 
 ## Release Process
 
-Releases are handled by maintainers:
+Releases are fully automated via GitHub Actions and Changesets:
 
-1. Version bumping follows semantic versioning
-2. Changelog is updated automatically
-3. GitHub releases include detailed notes
-4. npm packages are published automatically
+1. When PRs with changesets land on `main`, the `release.yml` workflow opens (or updates) a "Version Packages" PR aggregating all pending changesets and the resulting version bump.
+2. When a maintainer merges that PR, the workflow publishes to npm with [provenance](https://docs.npmjs.com/generating-provenance-statements) and creates a GitHub Release with notes from the changesets.
+3. Versions follow [Semantic Versioning](https://semver.org/). Bump type is determined by the changeset entries in the release.
+
+Maintainers do not run `npm publish` locally.
 
 ## Getting Help
 
