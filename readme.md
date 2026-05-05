@@ -2,6 +2,7 @@
 
 **AI-powered Mongoose plugin for intelligent document processing**
 
+[![CI](https://github.com/jmndao/mongoose-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/jmndao/mongoose-ai/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/@jmndao/mongoose-ai.svg)](https://www.npmjs.com/package/@jmndao/mongoose-ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
